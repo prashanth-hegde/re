@@ -15,6 +15,7 @@ fn add_state(s State, mut state_set []State) {
   }
 }
 
+[direct_array_access]
 fn (re Re) match_all(text string) bool {
   // todo: externalize this processing logic
   // todo: modify the logic to process indexes rather than text itself

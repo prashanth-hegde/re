@@ -127,7 +127,7 @@ fn print_tr(s State, spaces string) {
 ******************************************************************************/
 fn build_nfa(expr string) ?&Transition {
   tokens := parse(expr)
-  println("tokens = $tokens")
+  log.debug("tokens = $tokens")
   mut nfa := NFA{}
   for tok in tokens {
     nfa.handle(tok)

@@ -39,6 +39,8 @@ fn test_match_all() ? {
     ReTestData{'simple',                r'ab+d',             r'abbd',                               true}
     ReTestData{'simple',                r'(ab)+d',           r'abbbbd',                             false}
     ReTestData{'simple',                r'(ab)+d',           r'abababd',                            true}
+    ReTestData{'simple',                r'a(a+b)*b',         r'aaababb',                            true}
+    ReTestData{'simple',                r'a(a+b)*b',         r'ab',                                 true}
   ]
   for test in test_data {
     re := compile(test.expr) ?

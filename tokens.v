@@ -153,22 +153,3 @@ fn parse(expr string) []Token {
   mut parser := Parser{pattern:expr}
   return parser.parse()
 }
-
-//fn main() {
-//	p := r'abc|d'
-//  expr := r'(ab+)*c'
-//	mut parser := Parser{pattern:expr}
-//  toks := parser.parse()
-//  println("all tokens = $toks")
-//}
-
-//fn main() {
-//  p := r'a?a?a?a?aaaa'
-//  text := r'aaaaaaaa'
-//  mut watch := time.new_stopwatch()
-//  watch.start()
-//  mut regg := regex.regex_opt(p) ?
-//  s, e := regg.find(text)
-//  watch.stop()
-//  println("start=$s | end=$e | elapsed=$watch.elapsed()")
-//}
