@@ -35,8 +35,14 @@ struct ReTestData {
 fn test_match_all() ? {
   test_data := [
     ReTestData{'simple',                r'abcd',             r'abcd',                               true}
+    ReTestData{'simple',                r'abcde',            r'abcde',                              true}
+    ReTestData{'simple',                r'ab+d',             r'abbd',                               true}
+    ReTestData{'simple',                r'(ab)+d',           r'abbbbd',                             false}
+    ReTestData{'simple',                r'(ab)+d',           r'abababd',                            true}
   ]
   for test in test_data {
     re := compile(test.expr) ?
+    assert re.match_all(test.text) == test.exp_match
   }
 }
+

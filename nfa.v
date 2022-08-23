@@ -1,22 +1,22 @@
 module main
-import datatypes {Stack}
 
+[heap]
 struct State {
-  name              string
+  name              int
   mut:
-  epsilon           []State
-  transitions       map[string]State
+  epsilon           []&State
+  transitions       map[string]&State
   is_end            bool = true
 }
-fn (s State) str() string {
+fn (s &State) str() string {
   e := if s.is_end { ", end" } else { "" }
   return 's${s.name}[ep=$s.epsilon.len, tr=$s.transitions.len$e]'
 }
 
 struct Transition {
   mut:
-  start            State
-  end              State
+  start            &State
+  end              &State
 }
 
 fn (tr Transition) str() string {
@@ -28,23 +28,29 @@ fn (tr Transition) str() string {
 
 struct NFA {
   mut:
-  nfa_stack         Stack<Transition>          = Stack<Transition>{}
+  nfa_stack         []&Transition       = []&Transition{}
   state_count       int
 }
 
-fn (mut n NFA) create_state() State {
-  return State{name: '${n.state_count++}'}
+fn (mut n NFA) create_state() &State {
+  return &State{name: n.state_count++}
 }
 
-fn (mut n NFA) add_transition(start State, end State) {
-  edge := Transition{start, end}
-  n.nfa_stack.push(edge)
+fn (mut n NFA) add_transition(start &State, end &State) {
+  edge := &Transition{start, end}
+  n.nfa_stack << edge
 }
 
+// Thompson's algorithm:
+// https://medium.com/swlh/visualizing-thompsons-construction-algorithm-for-nfas-step-by-step-f92ef378581b
 fn (mut n NFA) handle(tok Token) {
   match tok.symbol {
     .char   { n.handle_char(tok) }
     .concat { n.handle_concat(tok) }
+    .opt    { n.handle_alt(tok) }
+    .qmark  { n.handle_qmark(tok) }
+    .plus   { n.handle_rep(tok) }
+    .star   { n.handle_rep(tok) }
     else    {  }
   }
 }
@@ -58,18 +64,17 @@ fn (mut n NFA) handle_char(tok Token) {
 }
 
 fn (mut n NFA) handle_concat(tok Token) {
-  mut n2 := n.nfa_stack.pop() or { return }
-  mut n1 := n.nfa_stack.pop() or { return }
+  mut n2 := n.nfa_stack.pop()
+  mut n1 := n.nfa_stack.pop()
   n1.end.is_end = false
   n1.end.epsilon << n2.start
   n.add_transition(n1.start, n2.end)
   log.debug('concat handler   -> $tok, start=$n1.start, end=$n2.end')
-  print_tr(n1.start, '')
 }
 
 fn (mut n NFA) handle_alt(tok Token) {
-  mut n2 := n.nfa_stack.pop() or {return}
-  mut n1 := n.nfa_stack.pop() or {return}
+  mut n2 := n.nfa_stack.pop()
+  mut n1 := n.nfa_stack.pop()
   mut s0 := n.create_state()
   s0.epsilon << n1.start
   s0.epsilon << n2.start
@@ -82,7 +87,7 @@ fn (mut n NFA) handle_alt(tok Token) {
 }
 
 fn (mut n NFA) handle_rep(tok Token) {
-  mut n1 := n.nfa_stack.pop() or {return}
+  mut n1 := n.nfa_stack.pop()
   mut s0 := n.create_state()
   mut s1 := n.create_state()
   s0.epsilon << n1.start
@@ -93,12 +98,26 @@ fn (mut n NFA) handle_rep(tok Token) {
   n1.end.epsilon << n1.start
   n1.end.is_end = false
   n.add_transition(s0, s1)
+  log.debug('rep handler      -> $tok, start=$s0, end=$s1')
 }
 
 fn (mut n NFA) handle_qmark(tok Token) {
-  mut n1 := n.nfa_stack.pop() or {return}
+  mut n1 := n.nfa_stack.pop()
   n1.start.epsilon << n1.end
-  n.nfa_stack.push(n1)
+  n.nfa_stack << n1
+}
+
+// helper function to print state diagram
+fn print_tr(s State, spaces string) {
+  log.debug('$spaces for $s.name:')
+  log.debug('$spaces epsilons: $s.epsilon.len')
+  //for e in s.epsilon {
+  //  print_tr(e, spaces + '  ')
+  //}
+  log.debug('$spaces transitions:')
+  for _, tr in s.transitions {
+    print_tr(tr, spaces + '  ')
+  }
 }
 
 /******************************************************************************
@@ -106,38 +125,15 @@ fn (mut n NFA) handle_qmark(tok Token) {
 * abstracted constructs
 *
 ******************************************************************************/
-fn build_nfa(expr string) ?Transition {
+fn build_nfa(expr string) ?&Transition {
   tokens := parse(expr)
   println("tokens = $tokens")
   mut nfa := NFA{}
   for tok in tokens {
     nfa.handle(tok)
   }
-  log.debug("building nfa completed, stack = $nfa.nfa_stack")
-  assert nfa.nfa_stack.len() == 1
-
-  return nfa.nfa_stack.pop()
+  assert nfa.nfa_stack.len == 1
+  tr := nfa.nfa_stack.pop()
+  return tr
 }
 
-//fn main() {
-//  exp0 := r'abcd'
-//  exp1 := r'aab+?b?'
-//  exp2 := r'abc|d'
-//  tr := build_nfa(exp0) or {
-//    println("building nfa failed, $err")
-//    return
-//  }
-//  print_tr(tr.start, '')
-//}
-
-fn print_tr(s State, spaces string) {
-  log.debug('$spaces for $s.name:')
-  log.debug('$spaces epsilons:')
-  for e in s.epsilon {
-    print_tr(e, spaces + '  ')
-  }
-  log.debug('$spaces transitions:')
-  for _, tr in s.transitions {
-    print_tr(tr, spaces + '  ')
-  }
-}

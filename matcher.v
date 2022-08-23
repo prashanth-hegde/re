@@ -4,25 +4,8 @@ pub struct RegexOpts {
   ignore_case       bool
 }
 
-struct ReProcessor {
-  //text              string
-  opts              RegexOpts
-  mut:
-  transitions       Transition
-  states            []State
-}
-
-//fn (mut re ReProcessor) add_state(state State) {
-//  if state !in re.states {
-//    re.states << state
-//    for eps in state.epsilon {
-//      re.states << eps
-//    }
-//  }
-//}
-
+// recursively add states for epsilons
 fn add_state(s State, mut state_set []State) {
-  log.debug("adding state s$s.name")
   state_names := state_set.map(it.name)
   if s.name !in state_names {
     state_set << s
@@ -32,30 +15,25 @@ fn add_state(s State, mut state_set []State) {
   }
 }
 
-fn (mut rp ReProcessor) match_all(text string) bool {
+fn (re Re) match_all(text string) bool {
   // todo: externalize this processing logic
   // todo: modify the logic to process indexes rather than text itself
-
-  log.debug('$rp.transitions')
+  log.debug('$re.transit')
   mut curr_states := []State{}
-  curr_states << rp.transitions.start
+  add_state(re.transit.start, mut curr_states)
   for ch in text.runes() {
     mut next_states := []State{}
     for state in curr_states {
       c := ch.str()
-      log.debug("processing $c")
-      log.debug("state transitions = ${state.transitions}")
       if c in state.transitions {
         trans_state := state.transitions[c]
         add_state(trans_state, mut next_states)
       }
     }
-    log.debug("before clone: curr_states=$curr_states")
     curr_states = next_states.clone()
-    log.debug("after clone: curr_states=$curr_states")
+    log.debug("next_states: $curr_states")
   }
 
-  log.debug("new curr_states = $curr_states")
   for s in curr_states {
     if s.is_end {
       return true
@@ -71,7 +49,6 @@ fn (mut rp ReProcessor) match_all(text string) bool {
 ******************************************************************************/
 pub struct Re {
   transit           Transition
-  pub mut:
   opts              RegexOpts
 }
 
@@ -83,21 +60,10 @@ pub fn compile(pattern string) ?Re {
   return Re{transit: build_nfa(pattern)?, opts:RegexOpts{}}
 }
 
-pub fn (re Re) match_all(text string) bool {
-  rp := ReProcessor{
-    opts: re.opts
-    transitions: re.transit
-  }
-  curr_states := []State
-  return true
+fn main() {
+  expr := '(ab)+d'
+  //expr := 'ababababd'
+  re := compile(expr) ?
+  res := re.match_all('ababababd')
+  println("result = $res")
 }
-
-//fn main() {
-//  expr := 'abcd'
-//  nfa := build_nfa(expr) ?
-//  mut rp := ReProcessor{
-//    transitions: nfa
-//  }
-//  res := rp.match_all('abcd')
-//  println("hello $res")
-//}
