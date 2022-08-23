@@ -58,7 +58,7 @@ fn (mut n NFA) handle(tok Token) {
 fn (mut n NFA) handle_char(tok Token) {
   mut s0 := n.create_state()
   mut s1 := n.create_state()
-  s0.transitions[tok.char.str()] = s1
+  s0.transitions[tok.char] = s1
   n.add_transition(s0, s1)
   log.debug('char handler     -> $tok, start=$s0, end=$s1')
 }

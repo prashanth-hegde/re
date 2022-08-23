@@ -16,7 +16,7 @@ enum Symbol {
 }
 const log = Log{level: .debug}
 const concat = `\x08`
-const end_token = Token{concat, .end}
+const end_token = Token{concat.str(), .end}
 const symbol_map = {
 	`(`										: Symbol.group_start
 	`)` 									: .group_end
@@ -33,7 +33,7 @@ const symbol_map = {
   But * has a special meaning if it is not preceeded by a backslash
 */
 struct Token {
-	char 									rune 					[required]
+	char 									string 			  [required]
 	symbol 								Symbol 				[required]
 }
 
@@ -61,11 +61,12 @@ fn (parser Parser) string() string {
 }
 
 fn (mut parser Parser) get_token(escaped bool) Token {
-	pattern := parser.pattern
+	pattern := parser.pattern.runes()
 	return if parser.position >= pattern.len {
     end_token
 	} else if escaped {
-		tok := Token{pattern[parser.position], .char}
+    ch := pattern[parser.position]
+		tok := Token{ch.str(), .char}
 		parser.position++
 		tok
 	} else if pattern[parser.position] == `\\` {
@@ -75,17 +76,18 @@ fn (mut parser Parser) get_token(escaped bool) Token {
 		ch := pattern[parser.position]
 		sym := symbol_map[ch] or { Symbol.char }
 		parser.position++
-    Token{ch, sym}
+    Token{ch.str(), sym}
 	}
 }
 
 fn (parser Parser) lookahead() Token {
-  if parser.position >= parser.pattern.len { return end_token }
-  ch := parser.pattern[parser.position]
+  pat := parser.pattern.runes()
+  if parser.position >= pat.len { return end_token }
+  ch := pat[parser.position]
   sym := symbol_map[ch] or {Symbol.char}
 
   return Token {
-    char    : ch
+    char    : ch.str()
     symbol  : sym
   }
 }
@@ -124,7 +126,7 @@ fn (mut p Parser) concat() {
   p.factor()
   if p.lookahead().symbol !in [.group_end, .opt, .end] {
     p.concat()
-    p.tokens << Token{concat, .concat}
+    p.tokens << Token{concat.str(), .concat}
   }
 }
 
