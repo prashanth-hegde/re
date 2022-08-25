@@ -46,6 +46,7 @@ fn (mut n NFA) add_transition(start &State, end &State) {
 fn (mut n NFA) handle(tok Token) {
   match tok.symbol {
     .char   { n.handle_char(tok) }
+    .dot    { n.handle_dot(tok) }
     .concat { n.handle_concat(tok) }
     .opt    { n.handle_alt(tok) }
     .qmark  { n.handle_qmark(tok) }
@@ -61,6 +62,14 @@ fn (mut n NFA) handle_char(tok Token) {
   s0.transitions[tok.char] = s1
   n.add_transition(s0, s1)
   log.debug('char handler     -> $tok, start=$s0, end=$s1')
+}
+
+fn (mut n NFA) handle_dot(tok Token) {
+  mut s0 := n.create_state()
+  mut s1 := n.create_state()
+  s0.transitions[dot] = s1
+  n.add_transition(s0, s1)
+  log.debug('dot handler      -> $tok, start=$s0, end=$s1')
 }
 
 fn (mut n NFA) handle_concat(tok Token) {

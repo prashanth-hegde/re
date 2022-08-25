@@ -14,6 +14,7 @@ fn test_parser() {
     TestData{'group',                   r'(ab+)c',           [Symbol.char, .char, .plus, .concat, .char, .concat]}
     TestData{'group+',                  r'(ab+)+c',          [Symbol.char, .char, .plus, .concat, .plus, .char, .concat]}
     TestData{'pathological',            r'a?a?aa',           [Symbol.char, .qmark, .char, .qmark, .char, .char, .concat, .concat, .concat]}
+    //TestData{'dot',                     r'a.b',              [Symbol.char, .char, .char, .concat, .concat]}
   ]
 
   for test in test_data {
@@ -21,7 +22,7 @@ fn test_parser() {
     tokens := parser.parse()
     assert tokens.len == test.exp_tokens.len, '$test.name'
     for i, tok in tokens {
-      assert tok.symbol == test.exp_tokens[i]
+      assert tok.symbol == test.exp_tokens[i], '$test.name'
     }
   }
 }
@@ -35,16 +36,17 @@ struct ReTestData {
 fn test_match_all() ? {
   test_data := [
     ReTestData{'simple',                r'abcd',             r'abcd',                               true}
-    ReTestData{'simple',                r'abcde',            r'abcde',                              true}
-    ReTestData{'simple',                r'ab+d',             r'abbd',                               true}
-    ReTestData{'simple',                r'(ab)+d',           r'abbbbd',                             false}
-    ReTestData{'simple',                r'(ab)+d',           r'abababd',                            true}
-    ReTestData{'simple',                r'a(a+b)*b',         r'aaababb',                            true}
-    ReTestData{'simple',                r'a(a+b)*b',         r'ab',                                 true}
+    ReTestData{'alt',                   r'ab+d',             r'abbd',                               true}
+    ReTestData{'group alt',             r'(ab)+d',           r'abbbbd',                             false}
+    ReTestData{'group alt 2',           r'(ab)+d',           r'abababd',                            true}
+    ReTestData{'group star',            r'a(a+b)*b',         r'aaababb',                            true}
+    ReTestData{'group star 2',          r'a(a+b)*b',         r'ab',                                 true}
+    //ReTestData{'dot',                   r'....',             r'abcd',                               true}
+    //ReTestData{'backslash',             r'a\.b',             r'acb',                               true}
   ]
   for test in test_data {
     re := compile(test.expr) ?
-    assert re.match_all(test.text) == test.exp_match
+    assert re.match_all(test.text) == test.exp_match, test.name
   }
 }
 

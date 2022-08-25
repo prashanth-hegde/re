@@ -6,6 +6,7 @@ pub struct RegexOpts {
 
 // recursively add states for epsilons
 fn add_state(s State, mut state_set []State) {
+  log.debug('adding state $s')
   state_names := state_set.map(it.name)
   if s.name !in state_names {
     state_set << s
@@ -29,10 +30,17 @@ fn (re Re) match_all(text string) bool {
       if c in state.transitions {
         trans_state := state.transitions[c]
         add_state(trans_state, mut next_states)
+      } else if dot in state.transitions {
+        log.debug('falling into dot')
+        trans_state := state.transitions[dot]
+        add_state(trans_state, mut next_states)
       }
     }
     curr_states = next_states.clone()
     log.debug("next_states: $curr_states")
+    if curr_states.len == 0 {
+      break
+    }
   }
 
   for s in curr_states {
@@ -61,10 +69,11 @@ pub fn compile(pattern string) ?Re {
   return Re{transit: build_nfa(pattern)?, opts:RegexOpts{}}
 }
 
-fn main() {
-  expr := '(ab)+d'
-  //expr := 'ababababd'
-  re := compile(expr) ?
-  res := re.match_all('ababababd')
-  println("result = $res")
-}
+//fn main() {
+//  //expr := '(ab)+d'
+//  //expr := 'ababababd'
+//  expr := r'a\.b'
+//  re := compile(expr) ?
+//  res := re.match_all('acb')
+//  println("result = $res")
+//}

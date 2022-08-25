@@ -1,7 +1,5 @@
 module main
 import log {Log}
-//import regex
-//import time
 
 enum Symbol {
 	end 									// terminal symbol
@@ -12,10 +10,12 @@ enum Symbol {
 	concat								// \x08
 	plus									// +
 	qmark 								// ?
+	dot									  // .
 	char									// normal character
 }
 const log = Log{level: .debug}
 const concat = `\x08`
+const dot = 'dot'
 const end_token = Token{concat.str(), .end}
 const symbol_map = {
 	`(`										: Symbol.group_start
@@ -25,6 +25,7 @@ const symbol_map = {
 	concat								: .concat
 	`+`										: .plus
 	`?`										: .qmark
+  `.`                   : .dot
 }
 
 /*
@@ -143,7 +144,7 @@ fn (mut p Parser) primary() {
     p.next_token()
     p.opt()
     p.next_token()
-  } else if p.lookahead().symbol == .char {
+  } else if p.lookahead().symbol in [.char, .dot] {
     p.tokens << p.lookahead()
     p.next_token()
   }
@@ -153,3 +154,4 @@ fn parse(expr string) []Token {
   mut parser := Parser{pattern:expr}
   return parser.parse()
 }
+
