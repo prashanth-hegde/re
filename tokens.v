@@ -50,15 +50,16 @@ fn (token Token) str() string {
 
 struct Parser {
 	pattern 							string 				[required]
+  runes                 []rune
 	mut:
 	position 							int
 	tokens 								[]Token
+  raw_tokens            []Token
   curr_token            Token
-  lookahead             Token
 }
 
 fn (parser Parser) string() string {
-  return "position=$parser.position | curr=$parser.curr_token.symbol | lookahead=$parser.lookahead.symbol"
+  return "position=$parser.position | curr=$parser.curr_token.symbol | lookahead=$parser.lookahead().symbol"
 }
 
 fn (mut parser Parser) get_token(escaped bool) Token {
@@ -82,21 +83,22 @@ fn (mut parser Parser) get_token(escaped bool) Token {
 }
 
 fn (parser Parser) lookahead() Token {
-  pat := parser.pattern.runes()
-  if parser.position >= pat.len { return end_token }
-  ch := pat[parser.position]
-  sym := symbol_map[ch] or {Symbol.char}
-
-  return Token {
-    char    : ch.str()
-    symbol  : sym
+  pos := parser.position
+  return if pos >= parser.raw_tokens.len {
+    end_token
+  } else {
+    parser.raw_tokens[pos]
   }
 }
 
 fn (mut parser Parser) next_token() Token {
-  parser.curr_token = parser.get_token(false)
-  parser.lookahead = parser.lookahead()
-  return parser.curr_token
+  return if parser.position >= parser.raw_tokens.len {
+    end_token
+  } else {
+    tok := parser.raw_tokens[parser.position]
+    parser.position++
+    tok
+  }
 }
 
 /**
@@ -108,7 +110,6 @@ fn (mut parser Parser) next_token() Token {
 
 fn (mut parser Parser) parse() []Token {
   // init the lookahead to begin with
-  parser.lookahead = parser.lookahead()
   parser.opt()
   return parser.tokens
 }
@@ -151,7 +152,13 @@ fn (mut p Parser) primary() {
 }
 
 fn parse(expr string) []Token {
-  mut parser := Parser{pattern:expr}
+  mut parser := Parser{pattern:expr, runes:expr.runes()}
+  mut tok := parser.get_token(false)
+  for tok.symbol != .end {
+    parser.raw_tokens << tok
+    tok = parser.get_token(false)
+  }
+  parser.position = 0
   return parser.parse()
 }
 

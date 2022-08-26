@@ -14,12 +14,12 @@ fn test_parser() {
     TestData{'group',                   r'(ab+)c',           [Symbol.char, .char, .plus, .concat, .char, .concat]}
     TestData{'group+',                  r'(ab+)+c',          [Symbol.char, .char, .plus, .concat, .plus, .char, .concat]}
     TestData{'pathological',            r'a?a?aa',           [Symbol.char, .qmark, .char, .qmark, .char, .char, .concat, .concat, .concat]}
-    //TestData{'dot',                     r'a.b',              [Symbol.char, .char, .char, .concat, .concat]}
+    TestData{'dot',                     r'a\.b',             [Symbol.char, .char, .char, .concat, .concat]}
+    TestData{'dot',                     r'a.b',              [Symbol.char, .dot, .char, .concat, .concat]}
   ]
 
   for test in test_data {
-    mut parser := Parser{pattern:test.expr}
-    tokens := parser.parse()
+    tokens := parse(test.expr)
     assert tokens.len == test.exp_tokens.len, '$test.name'
     for i, tok in tokens {
       assert tok.symbol == test.exp_tokens[i], '$test.name'
@@ -41,8 +41,8 @@ fn test_match_all() ? {
     ReTestData{'group alt 2',           r'(ab)+d',           r'abababd',                            true}
     ReTestData{'group star',            r'a(a+b)*b',         r'aaababb',                            true}
     ReTestData{'group star 2',          r'a(a+b)*b',         r'ab',                                 true}
-    //ReTestData{'dot',                   r'....',             r'abcd',                               true}
-    //ReTestData{'backslash',             r'a\.b',             r'acb',                               true}
+    ReTestData{'dot',                   r'....',             r'abcd',                               true}
+    ReTestData{'backslash',             r'a\.b',             r'a.b',                               true}
   ]
   for test in test_data {
     re := compile(test.expr) ?
