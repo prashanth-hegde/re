@@ -2,6 +2,7 @@ module main
 
 pub struct RegexOpts {
   ignore_case       bool
+  standard_expr     bool
 }
 
 // recursively add states for epsilons
@@ -69,11 +70,25 @@ pub fn compile(pattern string) ?Re {
   return Re{transit: build_nfa(pattern)?, opts:RegexOpts{}}
 }
 
-//fn main() {
-//  //expr := '(ab)+d'
-//  //expr := 'ababababd'
-//  expr := r'a\.b'
-//  re := compile(expr) ?
-//  res := re.match_all('acb')
-//  println("result = $res")
-//}
+pub fn match_all(pattern string, txt string) ?bool {
+  mut compiled := false
+  re := fn [pattern, mut compiled] () ?Re {
+    mut re_ := Re{}
+    if !compiled {
+      println("compiling option...")
+      re_ = compile(pattern)?
+      compiled = true
+    }
+    return re_
+  }
+  return re()?.match_all(txt)
+}
+
+fn main() {
+  //expr := '(ab)+d'
+  //expr := 'ababababd'
+  expr := r'a.b'
+  re := compile(expr) ?
+  res := re.match_all('a.b')
+  println("result = $res")
+}

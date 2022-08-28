@@ -12,8 +12,14 @@ enum Symbol {
 	qmark 								// ?
 	dot									  // .
 	char									// normal character
+  word                  // \w
+  nonword               // \W
+  digit                 // \d
+  nondigit              // \D
+  space                 // \s
+  nonspace              // \S
 }
-const log = Log{level: .debug}
+const log = Log{level: .info}
 const concat = `\x08`
 const dot = 'dot'
 const end_token = Token{concat.str(), .end}
@@ -25,7 +31,16 @@ const symbol_map = {
 	concat								: .concat
 	`+`										: .plus
 	`?`										: .qmark
-  `.`                   : .dot
+}
+
+const switches = {
+  `.`                   : Symbol.dot
+  `w`                   : .word
+  `W`                   : .nonword
+  `d`                   : .digit
+  `D`                   : .nondigit
+  `s`                   : .space
+  `S`                   : .nonspace
 }
 
 /*
@@ -63,23 +78,33 @@ fn (parser Parser) string() string {
 }
 
 fn (mut parser Parser) get_token(escaped bool) Token {
-	pattern := parser.pattern.runes()
-	return if parser.position >= pattern.len {
-    end_token
-	} else if escaped {
-    ch := pattern[parser.position]
-		tok := Token{ch.str(), .char}
-		parser.position++
-		tok
-	} else if pattern[parser.position] == `\\` {
-		parser.position++
-		parser.get_token(true)
-	} else {
-		ch := pattern[parser.position]
-		sym := symbol_map[ch] or { Symbol.char }
-		parser.position++
-    Token{ch.str(), sym}
-	}
+  if parser.position >= parser.runes.len {
+    return end_token
+  }
+
+  chr := parser.runes[parser.position]
+  token := if escaped && chr == `.` {
+    parser.position++
+    Token{'.', .char}
+  } else if !escaped && chr == `.` {
+    parser.position++
+    Token{dot, .dot}
+  } else if escaped  && chr in switches {
+    parser.position++
+    sw := switches[chr] or { Symbol.char }
+    Token{chr.str(), sw}
+  } else if !escaped && chr == `\\` {
+    parser.position++
+    parser.get_token(true)
+  } else if !escaped && chr in symbol_map {
+    parser.position++
+    sym := symbol_map[chr] or { Symbol.char }
+    Token{chr.str(), sym}
+  } else {
+    parser.position++
+    Token{chr.str(), .char}
+  }
+  return token
 }
 
 fn (parser Parser) lookahead() Token {
@@ -145,7 +170,7 @@ fn (mut p Parser) primary() {
     p.next_token()
     p.opt()
     p.next_token()
-  } else if p.lookahead().symbol in [.char, .dot] {
+  } else {
     p.tokens << p.lookahead()
     p.next_token()
   }
