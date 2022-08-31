@@ -84,11 +84,11 @@ pub fn match_all(pattern string, txt string) ?bool {
   return re()?.match_all(txt)
 }
 
-fn main() {
-  //expr := '(ab)+d'
-  //expr := 'ababababd'
-  expr := r'a.b'
-  re := compile(expr) ?
-  res := re.match_all('a.b')
-  println("result = $res")
-}
+//fn main() {
+//  //expr := '(ab)+d'
+//  //expr := 'ababababd'
+//  expr := r'a.b'
+//  re := compile(expr) ?
+//  res := re.match_all('a.b')
+//  println("result = $res")
+//}

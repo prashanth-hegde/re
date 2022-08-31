@@ -71,6 +71,7 @@ struct Parser {
 	tokens 								[]Token
   raw_tokens            []Token
   curr_token            Token
+  curr_group            int           = 1
 }
 
 fn (parser Parser) string() string {
@@ -154,6 +155,8 @@ fn (mut p Parser) concat() {
   if p.lookahead().symbol !in [.group_end, .opt, .end] {
     p.concat()
     p.tokens << Token{concat.str(), .concat}
+  } else if p.lookahead().symbol == .group_end {
+    p.tokens << Token{'0', .group_end}
   }
 }
 
@@ -167,6 +170,7 @@ fn (mut p Parser) factor() {
 
 fn (mut p Parser) primary() {
   if p.lookahead().symbol == .group_start {
+    p.tokens << Token{'${p.curr_group++}', .group_start}
     p.next_token()
     p.opt()
     p.next_token()
@@ -187,3 +191,12 @@ fn parse(expr string) []Token {
   return parser.parse()
 }
 
+fn main() {
+  expr := r'ab((ppp)cd+)+(e*)'
+  expr1 := r'(ab+)+c'
+  text := r'abcddddcddcdee'
+  toks := parse(expr1)
+  println("toks = $toks")
+  matc := match_all(expr, text) ?
+  println(matc)
+}
