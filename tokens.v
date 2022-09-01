@@ -19,7 +19,7 @@ enum Symbol {
   space                 // \s
   nonspace              // \S
 }
-const log = Log{level: .info}
+const log = Log{level: .debug}
 const concat = `\x08`
 const dot = 'dot'
 const end_token = Token{concat.str(), .end}
@@ -192,11 +192,11 @@ fn parse(expr string) []Token {
 }
 
 fn main() {
-  expr := r'ab((ppp)cd+)+(e*)'
-  expr1 := r'(ab+)+c'
-  text := r'abcddddcddcdee'
-  toks := parse(expr1)
-  println("toks = $toks")
-  matc := match_all(expr, text) ?
+  //expr := r'ab((ppp)cd+)+(e*)'
+  //expr1 := r'abcd'
+  //text := r'abcddddcddcdee'
+  //toks := parse(expr1)
+  //println("toks = $toks")
+  matc := match_all('ab.d', 'abcd') ?
   println(matc)
 }

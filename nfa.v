@@ -5,9 +5,14 @@ struct State {
   name              int
   mut:
   epsilon           []&State
-  transitions       map[string]&State
+  // todo: The ideal data structure for transitions is
+  // map[Token]&State. However, struct keys are not supported
+  // in map as of v0.3. Once this is supported, we need to revisit
+  // this data structure to simplify fom
+  transitions       []StateTransition
   is_end            bool = true
 }
+
 fn (s &State) str() string {
   e := if s.is_end { ", end" } else { "" }
   return 's${s.name}[ep=$s.epsilon.len, tr=$s.transitions.len$e]'
@@ -19,10 +24,15 @@ struct Transition {
   end              &State
 }
 
+struct StateTransition {
+  token           Token
+  state           &State
+}
+
 fn (tr Transition) str() string {
   t := '$tr.start -> $tr.end'
   e := '${tr.start.epsilon.map(it.name)}'
-  r := '${tr.start.transitions.keys()}'
+  r := '${tr.start.transitions.map(it.token.char)}'
   return 'transition=$t | epsilon=$e | trans=$r'
 }
 
@@ -46,7 +56,7 @@ fn (mut n NFA) add_transition(start &State, end &State) {
 fn (mut n NFA) handle(tok Token) {
   match tok.symbol {
     .char   { n.handle_char(tok) }
-    .dot    { n.handle_dot(tok) }
+    .dot    { n.handle_char(tok) }
     .concat { n.handle_concat(tok) }
     .opt    { n.handle_alt(tok) }
     .qmark  { n.handle_qmark(tok) }
@@ -59,17 +69,10 @@ fn (mut n NFA) handle(tok Token) {
 fn (mut n NFA) handle_char(tok Token) {
   mut s0 := n.create_state()
   mut s1 := n.create_state()
-  s0.transitions[tok.char] = s1
+  transit_state := &StateTransition{tok, s1}
+  s0.transitions << transit_state
   n.add_transition(s0, s1)
   log.debug('char handler     -> $tok, start=$s0, end=$s1')
-}
-
-fn (mut n NFA) handle_dot(tok Token) {
-  mut s0 := n.create_state()
-  mut s1 := n.create_state()
-  s0.transitions[dot] = s1
-  n.add_transition(s0, s1)
-  log.debug('dot handler      -> $tok, start=$s0, end=$s1')
 }
 
 fn (mut n NFA) handle_concat(tok Token) {
@@ -117,17 +120,17 @@ fn (mut n NFA) handle_qmark(tok Token) {
 }
 
 // helper function to print state diagram
-fn print_tr(s State, spaces string) {
-  log.debug('$spaces for $s.name:')
-  log.debug('$spaces epsilons: $s.epsilon.len')
-  //for e in s.epsilon {
-  //  print_tr(e, spaces + '  ')
-  //}
-  log.debug('$spaces transitions:')
-  for _, tr in s.transitions {
-    print_tr(tr, spaces + '  ')
-  }
-}
+//fn print_tr(s State, spaces string) {
+//  log.debug('$spaces for $s.name:')
+//  log.debug('$spaces epsilons: $s.epsilon.len')
+//  //for e in s.epsilon {
+//  //  print_tr(e, spaces + '  ')
+//  //}
+//  log.debug('$spaces transitions:')
+//  for _, tr in s.transitions {
+//    print_tr(tr, spaces + '  ')
+//  }
+//}
 
 /******************************************************************************
 *

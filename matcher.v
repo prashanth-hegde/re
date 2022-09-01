@@ -6,6 +6,7 @@ pub struct RegexOpts {
 }
 
 // recursively add states for epsilons
+[inline]
 fn add_state(s State, mut state_set []State) {
   log.debug('adding state $s')
   state_names := state_set.map(it.name)
@@ -15,6 +16,25 @@ fn add_state(s State, mut state_set []State) {
       add_state(eps, mut state_set)
     }
   }
+}
+
+[inline]
+fn can_transition(state &State, ch rune) ?&State {
+  mut res := false
+  for tr in state.transitions {
+    log.debug("evaluating state transition $tr.token against $ch")
+    res = match tr.token.symbol {
+      .char           {
+        log.debug("char $ch being matched ${tr.token.char == ch.str()}")
+        tr.token.char == ch.str() }
+      .dot            { true }
+      else            { false }
+    }
+    if res {
+      return tr.state
+    }
+  }
+  return error("no matching state found for $state.name")
 }
 
 [direct_array_access]
@@ -27,15 +47,8 @@ fn (re Re) match_all(text string) bool {
   for ch in text.runes() {
     mut next_states := []State{}
     for state in curr_states {
-      c := ch.str()
-      if c in state.transitions {
-        trans_state := state.transitions[c]
-        add_state(trans_state, mut next_states)
-      } else if dot in state.transitions {
-        log.debug('falling into dot')
-        trans_state := state.transitions[dot]
-        add_state(trans_state, mut next_states)
-      }
+      next_state := can_transition(state, ch) or { continue }
+      add_state(next_state, mut next_states)
     }
     curr_states = next_states.clone()
     log.debug("next_states: $curr_states")
@@ -46,6 +59,7 @@ fn (re Re) match_all(text string) bool {
 
   for s in curr_states {
     if s.is_end {
+      log.debug("evaluating end for $s.name")
       return true
     }
   }
@@ -75,7 +89,6 @@ pub fn match_all(pattern string, txt string) ?bool {
   re := fn [pattern, mut compiled] () ?Re {
     mut re_ := Re{}
     if !compiled {
-      println("compiling option...")
       re_ = compile(pattern)?
       compiled = true
     }
@@ -84,11 +97,3 @@ pub fn match_all(pattern string, txt string) ?bool {
   return re()?.match_all(txt)
 }
 
-//fn main() {
-//  //expr := '(ab)+d'
-//  //expr := 'ababababd'
-//  expr := r'a.b'
-//  re := compile(expr) ?
-//  res := re.match_all('a.b')
-//  println("result = $res")
-//}
