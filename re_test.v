@@ -1,4 +1,4 @@
-module main
+module re
 
 struct TestData {
   name          string
@@ -42,7 +42,7 @@ fn test_match_all() ? {
     ReTestData{'group star',            r'a(a+b)*b',         r'aaababb',                            true}
     ReTestData{'group star 2',          r'a(a+b)*b',         r'ab',                                 true}
     ReTestData{'dot',                   r'....',             r'abcd',                               true}
-    ReTestData{'backslash',             r'a\.b',             r'a.b',                               true}
+    ReTestData{'backslash',             r'a\.b',             r'a.b',                                true}
   ]
   for test in test_data {
     re := compile(test.expr) ?

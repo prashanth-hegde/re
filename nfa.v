@@ -1,3 +1,5 @@
+module re
+
 import strconv
 
 [heap]

@@ -1,3 +1,4 @@
+module re
 
 /******************************************************************************
 *
@@ -6,13 +7,13 @@
 ******************************************************************************/
 
 struct Parser {
-	pattern 							string 				[required]
-	runes								 	[]rune
+	pattern               string         [required]
+	runes                 []rune
 	mut:
-	position 							int
-	tokens 								[]Token
-	raw_tokens						[]Token
-	curr_group						int					 = 1
+	position              int
+	tokens                []Token
+	raw_tokens            []Token
+	curr_group            int            = 1
 }
 
 fn (parser Parser) string() string {

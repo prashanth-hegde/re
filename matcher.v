@@ -1,3 +1,5 @@
+module re
+
 pub struct RegexOpts {
 	ignore_case			 			bool
 	standard_expr		 			bool

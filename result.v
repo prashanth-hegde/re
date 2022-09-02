@@ -1,3 +1,4 @@
+module re
 
 struct Group {
 	mut:
