@@ -62,7 +62,10 @@ fn (re Re) match_all(text string) bool {
 		}
 		curr_states = next_states.clone()
 		log.debug("next_states: $curr_states")
-		if curr_states.len == 0 || true in curr_states.map(it.is_end) {
+		if curr_states.len == 0 {
+			// if there are no more states to evaluate, break and move on to next
+			break // this may need to be continue, more tests needed
+		} else if curr_states.len > 0 && true in curr_states.map(it.is_end) {
 			// if we haven't matched anything yet or
 			// exhausted all states, reset the states and start over
 			// for the next match

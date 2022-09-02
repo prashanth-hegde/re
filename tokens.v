@@ -147,6 +147,6 @@ fn main() {
 	//text := r'abcddddcddcdee'
 	//toks := parse(expr1)
 	//log.trace("toks = $toks")
-	matc := match_all('(ab)+d', 'xxxabababd') ?
+	matc := match_all('(ab)+d', 'abbbbd') ?
 	println(matc)
 }
