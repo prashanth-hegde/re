@@ -1,4 +1,3 @@
-
 pub struct RegexOpts {
 	ignore_case			 			bool
 	standard_expr		 			bool
@@ -39,28 +38,70 @@ fn (re Re) match_all(text string) bool {
 	// todo: externalize this processing logic
 	// todo: modify the logic to process indexes rather than text itself
 	log.debug('$re.transit')
+
+	// variables
 	mut curr_states := []State{}
+	mut groups := [Group{}]
+	//mut matches := []Group{}
+
+	// initialization
 	add_state(re.transit.start, mut curr_states)
-	for ch in text.runes() {
+	for i, ch in text.runes() {
 		mut next_states := []State{}
 		for state in curr_states {
 			next_state := can_transition(state, ch) or { continue }
+			log.trace("group for state $next_state.name = $next_state.group_start")
+			if groups[0].start == -1 {
+				groups[0].start = i
+			}
+			eval_group(state, next_state, mut groups, i)
 			add_state(next_state, mut next_states)
 		}
 		curr_states = next_states.clone()
 		log.debug("next_states: $curr_states")
-		if curr_states.len == 0 {
-			break
+		if curr_states.len == 0 && true in curr_states.map(it.is_end) {
+			// if we haven't matched anything yet or
+			// exhausted all states, reset the states and start over
+			// for the next match
+			add_state(re.transit.start, mut curr_states)
+			if groups[0].end < i {
+				groups[0].end = i
+			}
 		}
 	}
 
 	for s in curr_states {
 		if s.is_end {
-			log.debug("evaluating end for $s.name")
+			log.debug("evaluating end for $s.name, groups=$groups")
 			return true
 		}
 	}
 	return false
+}
+
+fn eval_group(start &State, end &State, mut groups []Group, position int) {
+	// group start
+	for gp in start.group_starts() {
+		if groups.len <= gp {
+			log.debug("group $gp does not exist, adding | len=$groups.len gp=$gp")
+			groups << Group { position, position }
+		} else {
+			log.warn("group $gp already filled, ignoring")
+		}
+	}
+
+	// group end
+	for gp in end.group_ends() {
+		if gp < groups.len {
+			groups[gp].end = position
+		} else {
+			log.warn("group $gp specified, but not found in groups list")
+		}
+
+		if groups[0].end < position {
+			groups[0].end = position
+		}
+	}
 }
 
 /******************************************************************************

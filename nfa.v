@@ -15,6 +15,24 @@ struct State {
 	group_end 						[]int								= []int{}
 }
 
+fn (s &State) group_starts() []int {
+	mut starts := []int{}
+	starts << s.group_start
+	for ep in s.epsilon {
+		starts << ep.group_start
+	}
+	return starts
+}
+
+fn (s &State) group_ends() []int {
+	mut ends := []int{}
+	ends << s.group_end
+	for ep in s.epsilon {
+		ends << ep.group_end
+	}
+	return ends
+}
+
 fn (s &State) str() string {
 	e := if s.is_end { ", end" } else { "" }
 	return 's${s.name}[ep=$s.epsilon.len, tr=$s.transitions.len$e]'
@@ -27,8 +45,8 @@ struct Transition {
 }
 
 struct StateTransition {
-	token					 			Token
-	state					 			&State
+	token					 				Token
+	state					 				&State
 }
 
 fn (tr Transition) str() string {
@@ -147,6 +165,7 @@ fn (mut n NFA) handle_group_end(tok Token) {
 	n1.start.group_start << group_num
 	n1.end.group_end << group_num
 	n.nfa_stack << n1
+	log.debug('gend handler      -> $tok, start=$n1.start, end=$n1.end, gstart=$n1.start.group_start')
 }
 
 // helper function to print state diagram
