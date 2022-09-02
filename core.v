@@ -64,44 +64,44 @@ const log = Log{}
 ******************************************************************************/
 
 enum Symbol {
-	end 									// terminal symbol
-	group_start						// (
-	group_end							// )
-	star 									// *
-	opt 									// |
-	concat								// \x08
-	plus									// +
-	qmark 								// ?
-	dot										// .
-	char									// normal character
-	word									// \w
-	nonword								// \W
-	digit									// \d
-	nondigit							// \D
-	space									// \s
-	nonspace							// \S
+	end                   // terminal symbol
+	group_start           // (
+	group_end             // )
+	star                  // *
+	opt                   // |
+	concat                // \x08
+	plus                  // +
+	qmark                 // ?
+	dot                   // .
+	char                  // normal character
+	word                  // \w
+	nonword               // \W
+	digit                 // \d
+	nondigit              // \D
+	space                 // \s
+	nonspace              // \S
 }
 const concat = `\x08`
 const dot = 'dot'
 const end_token = Token{concat.str(), .end}
 const symbol_map = {
-	`(`										: Symbol.group_start
-	`)` 									: .group_end
-	`*`										: .star
-	`|`										: .opt
-	concat								: .concat
-	`+`										: .plus
-	`?`										: .qmark
+	`(`                   : Symbol.group_start
+	`)`                   : .group_end
+	`*`                   : .star
+	`|`                   : .opt
+	concat                : .concat
+	`+`                   : .plus
+	`?`                   : .qmark
 }
 
 const switches = {
-	`.`									 : Symbol.dot
-	`w`									 : .word
-	`W`									 : .nonword
-	`d`									 : .digit
-	`D`									 : .nondigit
-	`s`									 : .space
-	`S`									 : .nonspace
+	`.`                   : Symbol.dot
+	`w`                   : .word
+	`W`                   : .nonword
+	`d`                   : .digit
+	`D`                   : .nondigit
+	`s`                   : .space
+	`S`                   : .nonspace
 }
 
 /*
@@ -110,8 +110,8 @@ const switches = {
 	But * has a special meaning if it is not preceeded by a backslash
 */
 struct Token {
-	char 									string 				[required]
-	symbol 								Symbol 				[required]
+	char                  string         [required]
+	symbol                Symbol         [required]
 }
 
 fn (token Token) str() string {
