@@ -11,8 +11,8 @@ fn test_parser() {
     TestData{'opt',                     r'a|bc|d',           [Symbol.char, .char, .char, .concat, .char, .opt, .opt]}
     TestData{'star',                    r'abc*d',            [Symbol.char, .char, .char, .star, .char, .concat, .concat, .concat]}
     TestData{'backslash',               r'ab\*c',            [Symbol.char, .char, .char, .char, .concat, .concat, .concat]}
-    TestData{'group',                   r'(ab+)c',           [Symbol.group_start, .char, .char, .plus, .group_end, .concat, .char, .concat]}
-    TestData{'group+',                  r'(ab+)+c',          [Symbol.group_start, .char, .char, .plus, .group_end, .concat, .plus, .char, .concat]}
+    TestData{'group',                   r'(ab+)c',           [Symbol.group_start, .char, .char, .plus, .concat, .group_end, .char, .concat]}
+    TestData{'group+',                  r'(ab+)+c',          [Symbol.group_start, .char, .char, .plus, .concat, .group_end, .plus, .char, .concat]}
     TestData{'pathological',            r'a?a?aa',           [Symbol.char, .qmark, .char, .qmark, .char, .char, .concat, .concat, .concat]}
     TestData{'dot',                     r'a\.b',             [Symbol.char, .char, .char, .concat, .concat]}
     TestData{'dot',                     r'a.b',              [Symbol.char, .dot, .char, .concat, .concat]}

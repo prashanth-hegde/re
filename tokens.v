@@ -65,17 +65,16 @@ fn (token Token) str() string {
 
 struct Parser {
 	pattern 							string 				[required]
-	runes								 []rune
+	runes								 	[]rune
 	mut:
 	position 							int
 	tokens 								[]Token
 	raw_tokens						[]Token
-	curr_token						Token
 	curr_group						int					 = 1
 }
 
 fn (parser Parser) string() string {
-	return "position=$parser.position | curr=$parser.curr_token.symbol | lookahead=$parser.lookahead().symbol"
+	return "position=$parser.position | lookahead=$parser.lookahead().symbol"
 }
 
 fn (mut parser Parser) get_token(escaped bool) Token {
@@ -140,26 +139,29 @@ fn (mut parser Parser) parse() []Token {
 }
 
 fn (mut p Parser) opt() {
+	println("evaluating opt")
 	p.concat()
 	if p.lookahead().symbol == .opt {
 		tok := p.lookahead()
 		p.next_token()
 		p.opt()
 		p.tokens << tok
+	} else if p.lookahead().symbol == .group_end {
+		p.tokens << p.lookahead()
 	}
 }
 
 fn (mut p Parser) concat() {
+	println("evaluating concat")
 	p.factor()
 	if p.lookahead().symbol !in [.group_end, .opt, .end] {
 		p.concat()
 		p.tokens << Token{concat.str(), .concat}
-	} else if p.lookahead().symbol == .group_end {
-		p.tokens << Token{'0', .group_end}
 	}
 }
 
 fn (mut p Parser) factor() {
+	println("evaluating factor")
 	p.primary()
 	if p.lookahead().symbol in [.star, .plus, .qmark] {
 		p.tokens << p.lookahead()
@@ -168,6 +170,7 @@ fn (mut p Parser) factor() {
 }
 
 fn (mut p Parser) primary() {
+	println("evaluating primary")
 	if p.lookahead().symbol == .group_start {
 		p.tokens << Token{'${p.curr_group++}', .group_start}
 		p.next_token()
@@ -176,6 +179,12 @@ fn (mut p Parser) primary() {
 	} else {
 		p.tokens << p.lookahead()
 		p.next_token()
+	}
+}
+
+fn (mut p Parser) gp_end() {
+	if p.lookahead().symbol == .group_end {
+		p.tokens << Token{'0', .group_end}
 	}
 }
 
@@ -192,10 +201,10 @@ fn parse(expr string) []Token {
 
 fn main() {
 	//expr := r'ab((ppp)cd+)+(e*)'
-	//expr1 := r'abcd'
+	expr1 := r'(ab+)+c'
 	//text := r'abcddddcddcdee'
 	//toks := parse(expr1)
 	//println("toks = $toks")
-	matc := match_all('ab.d', 'abcd') ?
+	matc := match_all('(ab+)+.d', 'abbabbbd') ?
 	println(matc)
 }

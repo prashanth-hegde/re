@@ -1,8 +1,8 @@
 module main
 
 pub struct RegexOpts {
-	ignore_case			 bool
-	standard_expr		 bool
+	ignore_case			 			bool
+	standard_expr		 			bool
 }
 
 // recursively add states for epsilons
@@ -24,11 +24,9 @@ fn can_transition(state &State, ch rune) ?&State {
 	for tr in state.transitions {
 		log.debug("evaluating state transition $tr.token against $ch")
 		res = match tr.token.symbol {
-			.char					 {
-				log.debug("char $ch being matched ${tr.token.char == ch.str()}")
-				tr.token.char == ch.str() }
-			.dot						{ true }
-			else						{ false }
+			.char					 		{ tr.token.char == ch.str() }
+			.dot							{ true }
+			else							{ false }
 		}
 		if res {
 			return tr.state
@@ -72,8 +70,8 @@ fn (re Re) match_all(text string) bool {
 *
 ******************************************************************************/
 pub struct Re {
-	transit					 Transition
-	opts							RegexOpts
+	transit					 			Transition
+	opts									RegexOpts
 }
 
 pub fn compile_opt(pattern string, opts RegexOpts) ?Re {
