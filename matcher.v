@@ -50,23 +50,23 @@ fn (re Re) match_all(text string) bool {
 		mut next_states := []State{}
 		for state in curr_states {
 			next_state := can_transition(state, ch) or { continue }
-			log.trace("group for state $next_state.name = $next_state.group_start")
+			log.trace("group info for state $next_state.name : start=$next_state.group_start, end=$next_state.group_end")
+			// evaluate group-0 for the evaluated state
 			if groups[0].start == -1 {
 				groups[0].start = i
+			} else if next_state.is_end && groups[0].end < i {
+				groups[0].end = i
 			}
 			eval_group(state, next_state, mut groups, i)
 			add_state(next_state, mut next_states)
 		}
 		curr_states = next_states.clone()
 		log.debug("next_states: $curr_states")
-		if curr_states.len == 0 && true in curr_states.map(it.is_end) {
+		if curr_states.len == 0 || true in curr_states.map(it.is_end) {
 			// if we haven't matched anything yet or
 			// exhausted all states, reset the states and start over
 			// for the next match
 			add_state(re.transit.start, mut curr_states)
-			if groups[0].end < i {
-				groups[0].end = i
-			}
 		}
 	}
 

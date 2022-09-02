@@ -16,41 +16,42 @@ enum LogLevel {
 
 struct Log {
 	mut:
-	level LogLevel = .info
+	level LogLevel = .debug
+	enabled bool = true
 }
 
 fn (l Log) debug(msg string) {
-	symbol := '[\033[94mDEBUG\33[0m]'
-	if int(l.level) <= int(LogLevel.debug) {
+	if l.enabled && int(l.level) <= int(LogLevel.debug) {
+		symbol := '[\033[94mDEBUG\33[0m]'
 		println('$time.now() $symbol $msg')
 	}
 }
 
 fn (l Log) error(msg string) {
-	symbol := '[\033[31mERROR\33[0m]'
-	if int(l.level) <= int(LogLevel.error) {
+	if l.enabled && int(l.level) <= int(LogLevel.error) {
+		symbol := '[\033[31mERROR\33[0m]'
 		println('$time.now() $symbol $msg')
 	}
 }
 
 fn (l Log) info(msg string) {
-	symbol := '[\033[32mINFO\33[0m]'
-	if int(l.level) <= int(LogLevel.info) {
-		println('$time.now() $symbol  $msg')
+	if l.enabled && int(l.level) <= int(LogLevel.info) {
+		symbol := '[\033[32mINFO\33[0m ]'
+		println('$time.now() $symbol $msg')
 	}
 }
 
 fn (l Log) trace(msg string) {
-	symbol := '[\033[94mTRACE\33[0m]'
-	if int(l.level) <= int(LogLevel.trace) {
+	if l.enabled && int(l.level) <= int(LogLevel.trace) {
+		symbol := '[\033[94mTRACE\33[0m]'
 		println('$time.now() $symbol $msg')
 	}
 }
 
 fn (l Log) warn(msg string) {
-	symbol := '[\033[33mWARN\33[0m]'
-	if int(l.level) <= int(LogLevel.warn) {
-		println('$time.now() $symbol  $msg')
+	if l.enabled && int(l.level) <= int(LogLevel.warn) {
+		symbol := '[\033[33mWARN\33[0m ]'
+		println('$time.now() $symbol $msg')
 	}
 }
 
