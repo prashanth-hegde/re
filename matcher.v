@@ -1,4 +1,3 @@
-module main
 
 pub struct RegexOpts {
 	ignore_case			 			bool
@@ -8,7 +7,7 @@ pub struct RegexOpts {
 // recursively add states for epsilons
 [inline]
 fn add_state(s State, mut state_set []State) {
-	log.debug('adding state $s')
+	log.trace('adding state $s')
 	state_names := state_set.map(it.name)
 	if s.name !in state_names {
 		state_set << s
@@ -22,7 +21,7 @@ fn add_state(s State, mut state_set []State) {
 fn can_transition(state &State, ch rune) ?&State {
 	mut res := false
 	for tr in state.transitions {
-		log.debug("evaluating state transition $tr.token against $ch")
+		log.trace("evaluating state transition $tr.token against $ch")
 		res = match tr.token.symbol {
 			.char					 		{ tr.token.char == ch.str() }
 			.dot							{ true }

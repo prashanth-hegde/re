@@ -1,5 +1,3 @@
-module main
-
 import strconv
 
 [heap]
@@ -116,7 +114,7 @@ fn (mut n NFA) handle_rep(tok Token) {
 	n1.end.epsilon << n1.start
 	n1.end.is_end = false
 	n.add_transition(s0, s1)
-	log.debug('rep handler			-> $tok, start=$s0, end=$s1')
+	log.debug('rep handler       -> $tok, start=$s0, end=$s1')
 }
 
 fn (mut n NFA) handle_qmark(tok Token) {
@@ -131,7 +129,7 @@ fn (mut n NFA) handle_group_start(tok Token) {
 	mut transition := StateTransition{tok, s1}
 	s0.transitions << transition
 	n.add_transition(s0, s1)
-	log.debug('gstart handler			-> $tok, start=$s0, end=$s1')
+	log.debug('gstart handler    -> $tok, start=$s0, end=$s1')
 }
 
 fn (mut n NFA) handle_group_end(tok Token) {

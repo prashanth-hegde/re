@@ -1,61 +1,3 @@
-module main
-import log {Log}
-
-enum Symbol {
-	end 									// terminal symbol
-	group_start						// (
-	group_end							// )
-	star 									// *
-	opt 									// |
-	concat								// \x08
-	plus									// +
-	qmark 								// ?
-	dot										// .
-	char									// normal character
-	word									// \w
-	nonword								// \W
-	digit									// \d
-	nondigit							// \D
-	space									// \s
-	nonspace							// \S
-}
-const log = Log{level: .debug}
-const concat = `\x08`
-const dot = 'dot'
-const end_token = Token{concat.str(), .end}
-const symbol_map = {
-	`(`										: Symbol.group_start
-	`)` 									: .group_end
-	`*`										: .star
-	`|`										: .opt
-	concat								: .concat
-	`+`										: .plus
-	`?`										: .qmark
-}
-
-const switches = {
-	`.`									 : Symbol.dot
-	`w`									 : .word
-	`W`									 : .nonword
-	`d`									 : .digit
-	`D`									 : .nondigit
-	`s`									 : .space
-	`S`									 : .nonspace
-}
-
-/*
-	Token maintains a simple mapping of character with any special meaning
-	For instance, a * is interpreted literally if it is preceeded with a backslash
-	But * has a special meaning if it is not preceeded by a backslash
-*/
-struct Token {
-	char 									string 				[required]
-	symbol 								Symbol 				[required]
-}
-
-fn (token Token) str() string {
-	return '$token.char:$token.symbol'
-}
 
 /******************************************************************************
 *
@@ -139,7 +81,7 @@ fn (mut parser Parser) parse() []Token {
 }
 
 fn (mut p Parser) opt() {
-	println("evaluating opt")
+	log.trace("evaluating opt")
 	p.concat()
 	if p.lookahead().symbol == .opt {
 		tok := p.lookahead()
@@ -152,7 +94,7 @@ fn (mut p Parser) opt() {
 }
 
 fn (mut p Parser) concat() {
-	println("evaluating concat")
+	log.trace("evaluating concat")
 	p.factor()
 	if p.lookahead().symbol !in [.group_end, .opt, .end] {
 		p.concat()
@@ -161,7 +103,7 @@ fn (mut p Parser) concat() {
 }
 
 fn (mut p Parser) factor() {
-	println("evaluating factor")
+	log.trace("evaluating factor")
 	p.primary()
 	if p.lookahead().symbol in [.star, .plus, .qmark] {
 		p.tokens << p.lookahead()
@@ -170,7 +112,7 @@ fn (mut p Parser) factor() {
 }
 
 fn (mut p Parser) primary() {
-	println("evaluating primary")
+	log.trace("evaluating primary")
 	if p.lookahead().symbol == .group_start {
 		p.tokens << Token{'${p.curr_group++}', .group_start}
 		p.next_token()
@@ -204,7 +146,7 @@ fn main() {
 	expr1 := r'(ab+)+c'
 	//text := r'abcddddcddcdee'
 	//toks := parse(expr1)
-	//println("toks = $toks")
+	//log.trace("toks = $toks")
 	matc := match_all('(ab+)+.d', 'abbabbbd') ?
 	println(matc)
 }
