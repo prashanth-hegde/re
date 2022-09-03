@@ -14,44 +14,44 @@ enum LogLevel {
 	info
 	warn
 	error
+	disabled // should be the last option
 }
 
 struct Log {
 	mut:
-	level LogLevel = .debug
-	enabled bool //= true
+	level LogLevel = .disabled
 }
 
 fn (l Log) debug(msg string) {
-	if l.enabled && int(l.level) <= int(LogLevel.debug) {
+	if int(l.level) <= int(LogLevel.debug) {
 		symbol := '[\033[94mDEBUG\33[0m]'
 		println('$time.now() $symbol $msg')
 	}
 }
 
 fn (l Log) error(msg string) {
-	if l.enabled && int(l.level) <= int(LogLevel.error) {
+	if int(l.level) <= int(LogLevel.error) {
 		symbol := '[\033[31mERROR\33[0m]'
 		println('$time.now() $symbol $msg')
 	}
 }
 
 fn (l Log) info(msg string) {
-	if l.enabled && int(l.level) <= int(LogLevel.info) {
+	if int(l.level) <= int(LogLevel.info) {
 		symbol := '[\033[32mINFO\33[0m ]'
 		println('$time.now() $symbol $msg')
 	}
 }
 
 fn (l Log) trace(msg string) {
-	if l.enabled && int(l.level) <= int(LogLevel.trace) {
+	if int(l.level) <= int(LogLevel.trace) {
 		symbol := '[\033[94mTRACE\33[0m]'
 		println('$time.now() $symbol $msg')
 	}
 }
 
 fn (l Log) warn(msg string) {
-	if l.enabled && int(l.level) <= int(LogLevel.warn) {
+	if int(l.level) <= int(LogLevel.warn) {
 		symbol := '[\033[33mWARN\33[0m ]'
 		println('$time.now() $symbol $msg')
 	}

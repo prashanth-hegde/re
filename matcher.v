@@ -1,10 +1,5 @@
 module re
 
-pub struct RegexOpts {
-	ignore_case			 			bool
-	standard_expr		 			bool
-}
-
 // recursively add states for epsilons
 [inline]
 fn add_state(s State, mut state_set []State) {
