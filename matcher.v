@@ -36,20 +36,20 @@ fn can_transition(state &State, ch rune) ?&State {
 }
 
 [direct_array_access]
-fn (re Re) match_all(text string) bool {
-	// todo: externalize this processing logic
-	// todo: modify the logic to process indexes rather than text itself
+fn (re Re) match_internal(text string, first_match bool) Result {
 	log.debug('$re.transit')
 
 	// variables
 	mut curr_states := []State{}
-	mut groups := [Group{}]
-	//mut matches := []Group{}
+	mut groups := [Group{}] 			// regex groups enclosed in parenthesis
+	mut matches := []Group{}			// text matches, there could be multiple matches
+	mut curr_match := Group{}
 
 	// initialization
 	add_state(re.transit.start, mut curr_states)
 	for i, ch in text.runes() {
 		mut next_states := []State{}
+		//mut match_found := false
 		for state in curr_states {
 			next_state := can_transition(state, ch) or { continue }
 			log.trace("group info for state $next_state.name : start=$next_state.group_start, end=$next_state.group_end")
@@ -57,31 +57,39 @@ fn (re Re) match_all(text string) bool {
 			if groups[0].start == -1 {
 				groups[0].start = i
 			} else if next_state.is_end && groups[0].end < i {
-				groups[0].end = i
+				groups[0].end = i + 1
+			}
+			// adding current match
+			if curr_match.start == -1 {
+				curr_match.start = i
+			} else if next_state.is_end {
+				curr_match.end = i + 1
+				matches << curr_match
+				curr_match = Group{}
+
+				if first_match {
+					return Result{text, groups, matches}
+				}
 			}
 			eval_group(state, next_state, mut groups, i)
 			add_state(next_state, mut next_states)
 		}
 		curr_states = next_states.clone()
 		log.debug("next_states: $curr_states")
-		if curr_states.len == 0 {
+		if curr_states.len == 0 || true in curr_states.map(it.is_end) {
 			// if there are no more states to evaluate, break and move on to next
-			break // this may need to be continue, more tests needed
-		} else if curr_states.len > 0 && true in curr_states.map(it.is_end) {
-			// if we haven't matched anything yet or
-			// exhausted all states, reset the states and start over
-			// for the next match
+			//break // this may need to be continue, more tests needed
 			add_state(re.transit.start, mut curr_states)
 		}
 	}
 
-	for s in curr_states {
-		if s.is_end {
-			log.debug("evaluating end for $s.name, groups=$groups")
-			return true
-		}
-	}
-	return false
+	return Result{text, groups, matches}
+	// todo: the below logic mat not be needed, check with tests
+	//return if true in curr_states.map(it.is_end) {
+	//	Result{text, groups, matches}
+	//} else {
+	//	Result{text, []Group{}, []Group{}}
+	//}
 }
 
 [inline]
@@ -99,45 +107,10 @@ fn eval_group(start &State, end &State, mut groups []Group, position int) {
 	// group end
 	for gp in end.group_ends() {
 		if gp < groups.len {
-			groups[gp].end = position
+			groups[gp].end = position + 1
 		} else {
 			log.warn("group $gp specified, but not found in groups list")
 		}
-
-		if groups[0].end < position {
-			groups[0].end = position
-		}
 	}
-}
-
-/******************************************************************************
-*
-* public interfaces
-*
-******************************************************************************/
-pub struct Re {
-	transit					 			Transition
-	opts									RegexOpts
-}
-
-pub fn compile_opt(pattern string, opts RegexOpts) ?Re {
-	return Re{transit: build_nfa(pattern)?, opts: opts}
-}
-
-pub fn compile(pattern string) ?Re {
-	return Re{transit: build_nfa(pattern)?, opts:RegexOpts{}}
-}
-
-pub fn match_all(pattern string, txt string) ?bool {
-	mut compiled := false
-	re := fn [pattern, mut compiled] () ?Re {
-		mut re_ := Re{}
-		if !compiled {
-			re_ = compile(pattern)?
-			compiled = true
-		}
-		return re_
-	}
-	return re()?.match_all(txt)
 }
 

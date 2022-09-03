@@ -33,7 +33,7 @@ struct ReTestData {
   text        string
   exp_match   bool
 }
-fn test_match_all() ? {
+fn test_contains_in() ? {
   test_data := [
     ReTestData{'simple',                r'abcd',             r'abcd',                               true}
     ReTestData{'alt',                   r'ab+d',             r'abbd',                               true}
@@ -47,7 +47,7 @@ fn test_match_all() ? {
   ]
   for test in test_data {
     re := compile(test.expr) ?
-    assert re.match_all(test.text) == test.exp_match, test.name
+    assert re.contains_in(test.text) == test.exp_match, test.name
   }
 }
 
