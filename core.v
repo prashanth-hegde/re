@@ -19,7 +19,7 @@ enum LogLevel {
 struct Log {
 	mut:
 	level LogLevel = .debug
-	enabled bool //= true
+	enabled bool = true
 }
 
 fn (l Log) debug(msg string) {
@@ -84,7 +84,6 @@ enum Symbol {
 	nonspace              // \S
 }
 const concat = `\x08`
-const dot = 'dot'
 const end_token = Token{concat.str(), .end}
 const symbol_map = {
 	`(`                   : Symbol.group_start
@@ -97,8 +96,7 @@ const symbol_map = {
 }
 
 const switches = {
-	`.`                   : Symbol.dot
-	`w`                   : .word
+	`w`                   : Symbol.word
 	`W`                   : .nonword
 	`d`                   : .digit
 	`D`                   : .nondigit

@@ -8,6 +8,7 @@ fn main() {
 	//text := r'abcddddcddcdee'
 	//toks := parse(expr1)
 	//log.trace("toks = $toks")
-	matc := re.match_all('(ab)+d', 'abbbbd') ?
-	println(matc)
+	//matc := re.match_all('a.b', 'axbaxbaxb') ?
+	multiple_matches := re.match_all('a.b', 'axbaxbaxb') ?
+	println(multiple_matches)
 }

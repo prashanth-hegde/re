@@ -43,6 +43,7 @@ fn test_match_all() ? {
     ReTestData{'group star 2',          r'a(a+b)*b',         r'ab',                                 true}
     ReTestData{'dot',                   r'....',             r'abcd',                               true}
     ReTestData{'backslash',             r'a\.b',             r'a.b',                                true}
+    ReTestData{'multiple matches',      r'a.b',              r'axbaxbaxb',                          true}
   ]
   for test in test_data {
     re := compile(test.expr) ?

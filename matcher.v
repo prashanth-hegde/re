@@ -84,6 +84,7 @@ fn (re Re) match_all(text string) bool {
 	return false
 }
 
+[inline]
 fn eval_group(start &State, end &State, mut groups []Group, position int) {
 	// group start
 	for gp in start.group_starts() {

@@ -12,6 +12,7 @@ fn (g Group) str() string {
 
 struct Result {
 	txt 									&string
+	match_found 					bool
 	groups 								[]Group
 	matches 							[]Group
 }

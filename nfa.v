@@ -77,8 +77,6 @@ fn (mut n NFA) add_transition(start &State, end &State) {
 // https://medium.com/swlh/visualizing-thompsons-construction-algorithm-for-nfas-step-by-step-f92ef378581b
 fn (mut n NFA) handle(tok Token) {
 	match tok.symbol {
-		.char	 				{ n.handle_char(tok) }
-		.dot					{ n.handle_char(tok) }
 		.concat 			{ n.handle_concat(tok) }
 		.opt					{ n.handle_alt(tok) }
 		.qmark				{ n.handle_qmark(tok) }
@@ -86,7 +84,7 @@ fn (mut n NFA) handle(tok Token) {
 		.star	 				{ n.handle_rep(tok) }
 		.group_start	{ n.handle_group_start(tok) }
 		.group_end		{ n.handle_group_end(tok) }
-		else					{	}
+		else					{ n.handle_char(tok) }
 	}
 }
 
