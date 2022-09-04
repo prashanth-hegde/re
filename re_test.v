@@ -33,7 +33,7 @@ struct ReTestData {
   text        string
   exp_match   bool
 }
-fn test_match_all() ? {
+fn test_contains_in() ? {
   test_data := [
     ReTestData{'simple',                r'abcd',             r'abcd',                               true}
     ReTestData{'alt',                   r'ab+d',             r'abbd',                               true}
@@ -43,10 +43,11 @@ fn test_match_all() ? {
     ReTestData{'group star 2',          r'a(a+b)*b',         r'ab',                                 true}
     ReTestData{'dot',                   r'....',             r'abcd',                               true}
     ReTestData{'backslash',             r'a\.b',             r'a.b',                                true}
+    ReTestData{'multiple matches',      r'a.b',              r'axbaxbaxb',                          true}
   ]
   for test in test_data {
     re := compile(test.expr) ?
-    assert re.match_all(test.text) == test.exp_match, test.name
+    assert re.contains_in(test.text) == test.exp_match, test.name
   }
 }
 

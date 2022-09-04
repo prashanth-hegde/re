@@ -31,7 +31,7 @@ fn (mut parser Parser) get_token(escaped bool) Token {
 		Token{'.', .char}
 	} else if !escaped && chr == `.` {
 		parser.position++
-		Token{dot, .dot}
+		Token{'', .dot}
 	} else if escaped	&& chr in switches {
 		parser.position++
 		sw := switches[chr] or { Symbol.char }

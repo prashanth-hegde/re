@@ -1,7 +1,5 @@
 module re
 
-import strconv
-
 [heap]
 struct State {
 	name									int
@@ -77,8 +75,6 @@ fn (mut n NFA) add_transition(start &State, end &State) {
 // https://medium.com/swlh/visualizing-thompsons-construction-algorithm-for-nfas-step-by-step-f92ef378581b
 fn (mut n NFA) handle(tok Token) {
 	match tok.symbol {
-		.char	 				{ n.handle_char(tok) }
-		.dot					{ n.handle_char(tok) }
 		.concat 			{ n.handle_concat(tok) }
 		.opt					{ n.handle_alt(tok) }
 		.qmark				{ n.handle_qmark(tok) }
@@ -86,7 +82,7 @@ fn (mut n NFA) handle(tok Token) {
 		.star	 				{ n.handle_rep(tok) }
 		.group_start	{ n.handle_group_start(tok) }
 		.group_end		{ n.handle_group_end(tok) }
-		else					{	}
+		else					{ n.handle_char(tok) }
 	}
 }
 
@@ -163,7 +159,7 @@ fn (mut n NFA) handle_group_end(tok Token) {
 	// if group_start was not encountered as part of n1, then n2 should have the
 	// group start
 	group_num_str := n2.start.transitions.pop()
-	group_num := strconv.atoi(group_num_str.token.char) or { return }
+	group_num := int(group_num_str.token.ch())
 	n1.start.group_start << group_num
 	n1.end.group_end << group_num
 	n.nfa_stack << n1
