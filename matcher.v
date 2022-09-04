@@ -14,13 +14,42 @@ fn add_state(s State, mut state_set []State) {
 }
 
 [inline]
+fn is_lower(ch u8) bool {
+	tmp := ch - `a`
+	return tmp < 26 && tmp >= 0
+}
+
+[inline]
+fn is_upper(ch u8) bool {
+	tmp := ch - `A`
+	return tmp < 26 && tmp >= 0
+}
+
+[inline]
+fn is_digit(ch u8) bool {
+	tmp := ch - `0`
+	return tmp < 10 && tmp >= 0
+}
+
+
+[inline]
+fn is_alnum(ch u8) bool {
+	return is_lower(ch) ||
+				 is_upper(ch) ||
+				 is_digit(ch) ||
+				 ch in [`_`]
+}
+
+[inline]
 fn can_transition(state &State, ch rune) ?&State {
 	mut res := false
 	for tr in state.transitions {
 		log.trace("evaluating state transition $tr.token against $ch")
 		res = match tr.token.symbol {
-			.char					 		{ tr.token.char == ch.str() }
+			.char					 		{ tr.token.ch() == ch }
 			.dot							{ true }
+			.word 						{ is_alnum(ch) }
+			.nonword 					{ !is_alnum(ch) }
 			else							{ false }
 		}
 		if res {

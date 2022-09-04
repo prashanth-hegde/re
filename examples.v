@@ -3,21 +3,13 @@ module main
 import re
 
 fn main() {
-	//expr := r'ab((ppp)cd+)+(e*)'
-	//expr1 := r'(ab+)+c'
-	//text := r'abcddddcddcdee'
-	//toks := parse(expr1)
-	//log.trace("toks = $toks")
-	//matc := re.match_all('a.b', 'axbaxbaxb') ?
 	txt := 'ggaxbkkaxbkkaxb'
-	expr := re.compile(r'a.b') ?
-	m_all := expr.match_all(txt)
-	find_first := expr.find_first(txt) ?
-	find_all := expr.find_all(txt)
-	no_match := expr.find_all('hhhhhh')
-	println('match_all         -> $m_all')
-	println('find_first        -> $find_first')
-	println('find_all          -> $find_all')
-	println('no_match          -> $no_match')
+	expr := re.compile(r'a.\w?') ?
+	ff := expr.find_first("hhhh") or {"not found"}
+	println('match_all         -> ${expr.match_all(txt)}')
+	println('no_match_s        -> $ff')
+	println('find_all          -> ${expr.find_all(txt)}')
+	println('no_match          -> ${expr.find_all("hhhhhh")}')
 	println('all_matches       -> ${expr.match_all(txt).get_matches()}')
+	println('word              -> ${expr.match_all(txt).get_matches()}')
 }

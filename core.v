@@ -82,6 +82,8 @@ enum Symbol {
 	nondigit              // \D
 	space                 // \s
 	nonspace              // \S
+	any 									// [a-z]
+	non 								  // [^a-z]
 }
 const concat = `\x08`
 const end_token = Token{concat.str(), .end}
@@ -114,14 +116,11 @@ struct Token {
 	symbol                Symbol         [required]
 }
 
+fn (t Token) ch() rune {
+	return t.char.runes()[0]
+}
+
 fn (token Token) str() string {
 	return '$token.char:$token.symbol'
 }
-
-/******************************************************************************
-*
-* Poor man's logger. Having problems with built in logger sometimes not working
-*
-******************************************************************************/
-
 

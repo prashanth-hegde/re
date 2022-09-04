@@ -1,7 +1,5 @@
 module re
 
-import strconv
-
 [heap]
 struct State {
 	name									int
@@ -161,7 +159,7 @@ fn (mut n NFA) handle_group_end(tok Token) {
 	// if group_start was not encountered as part of n1, then n2 should have the
 	// group start
 	group_num_str := n2.start.transitions.pop()
-	group_num := strconv.atoi(group_num_str.token.char) or { return }
+	group_num := int(group_num_str.token.ch())
 	n1.start.group_start << group_num
 	n1.end.group_end << group_num
 	n.nfa_stack << n1
