@@ -19,7 +19,7 @@ enum LogLevel {
 
 struct Log {
 	mut:
-	level LogLevel = .disabled
+	level LogLevel = .debug
 }
 
 fn (l Log) debug(msg string) {

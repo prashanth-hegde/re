@@ -98,7 +98,9 @@ fn (mut n NFA) handle_char(tok Token) {
 fn (mut n NFA) handle_concat(tok Token) {
 	mut n2 := n.nfa_stack.pop()
 	mut n1 := n.nfa_stack.pop()
+	n1.start.is_end = false
 	n1.end.is_end = false
+	n2.start.is_end = false
 	n1.end.epsilon << n2.start
 	n.add_transition(n1.start, n2.end)
 	log.debug('concat handler    -> $tok, start=$n1.start, end=$n2.end')
@@ -159,7 +161,7 @@ fn (mut n NFA) handle_group_end(tok Token) {
 	// if group_start was not encountered as part of n1, then n2 should have the
 	// group start
 	group_num_str := n2.start.transitions.pop()
-	group_num := int(group_num_str.token.ch())
+	group_num := int(group_num_str.token.ch() - `0`)
 	n1.start.group_start << group_num
 	n1.end.group_end << group_num
 	n.nfa_stack << n1
@@ -195,4 +197,3 @@ fn build_nfa(expr string) ?&Transition {
 	tr := nfa.nfa_stack.pop()
 	return tr
 }
-
