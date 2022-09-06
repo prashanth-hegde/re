@@ -63,23 +63,6 @@ fn can_transition(state &State, ch rune) ?&State {
 	return error("no matching state found for $state.name")
 }
 
-[direct_array_access; inline]
-fn eval_match3(start &State, end &State, mut curr_match Group, mut matches []Group, i int) bool {
-	// adding current match
-	if curr_match.start == -1 {
-		log.info("setting match start = $i")
-		curr_match.start = i
-	}
-	if end.is_end {
-		log.info("evaluating match end = $i")
-		curr_match.end = i + 1
-		matches << curr_match
-		curr_match = Group{}
-	}
-
-	return false
-}
-
 [direct_array_access]
 fn (re Re) match_internal(text string, first_match bool) Result {
 	log.debug('$re.transit')
@@ -97,7 +80,7 @@ fn (re Re) match_internal(text string, first_match bool) Result {
 		//mut match_found := false
 		for state in curr_states {
 			next_state := can_transition(state, ch) or { continue }
-			//log.debug("group info for state $next_state.name : start=$next_state.group_start, end=$next_state.group_end")
+			log.debug("group info for state $next_state.name : start=$next_state.group_start, end=$next_state.group_end")
 			eval_group(state, next_state, mut groups, i)
 			//eval_match3(state, next_state, mut curr_match, mut matches, i)
 
@@ -110,32 +93,41 @@ fn (re Re) match_internal(text string, first_match bool) Result {
 
 			add_state(next_state, mut next_states)
 		}
+		prev_last_state, prev_eps := check_end(curr_states)
 		curr_states = next_states.clone()
 		log.info("next_states: $curr_states")
-		// needed for \d+ match
-		if curr_states.len == 0 {
+
+		if prev_last_state && prev_eps && curr_match.start != -1 && curr_states.len == 0 {
+			log.info("previous state was last that got reset, so adding them to match | last_state=$prev_last_state, eps=$prev_eps")
+			curr_match.end = i
+			log.info("setting new match start i=$i, curr_match=$curr_match, matches=$matches.len")
+			matches << curr_match
+			curr_match = Group{}
+			add_state(re.transit.start, mut curr_states)
+		} else if i == text.len - 1 && prev_eps && curr_match.start != -1 {
+			log.info("end of text an match is epsilon, so adding them to match")
+			curr_match.end = i + 1
+			log.info("setting new match start i=$i, curr_match=$curr_match, matches=$matches.len")
+			matches << curr_match
+			curr_match = Group{}
+		} else if curr_states.len == 0 {
 			log.info("no more states... resetting state machine")
 			curr_match.start = -1
 			add_state(re.transit.start, mut curr_states)
-		} else if true in curr_states.map(it.is_end) {
-			log.info("epsilon map = ${curr_states.map(it.name)} ${curr_states.map(it.is_end)}")
-			//mut eps := false
-			//for c in curr_states {
-			//	if c.epsilon.len > 0 {
-			//		eps = true
-			//		break
-			//	}
-			//}
-			//if eps && matches.len > 0 {
-			//	matches[matches.len - 1].end = i + 1
-			//} else {
+		} else {
+			log.info("epsilon map = ${curr_states.map(it.name)} ${curr_states.map(it.is_end)}, curr=$curr_match")
+			last_state, eps := check_end(curr_states)
+			if last_state && eps && !prev_last_state && matches.len > 0 {
+				//matches[matches.len - 1].end = i + 1
+			} else if last_state && !eps {
 				curr_match.end = i + 1
 				matches << curr_match
 				curr_match = Group{}
-			//}
 				add_state(re.transit.start, mut curr_states)
+			}
 		}
-		if matches.len > 0 && first_match {
+
+		if first_match && matches.len > 0 {
 			return Result{text, groups, matches}
 		}
 	}
@@ -172,49 +164,12 @@ fn eval_group(start &State, end &State, mut groups []Group, position int) {
 	}
 }
 
-[inline]
-fn eval_match(start &State, end &State, mut curr_match Group, mut matches []Group, i int) {
-	// adding current match
-	if curr_match.start == -1 {
-		curr_match.start = i
+fn check_end (states []State) (bool, bool) {
+	last_state := true in states.map(it.is_end)
+	mut eps := 0
+	for s in states {
+		eps += s.epsilon.len
 	}
-	if end.is_end {
-		// || (i == text.len - 1 && true in next_state.epsilon.map(it.is_end)) {
-		curr_match.end = i + 1
-		matches << curr_match
-		curr_match = Group{}
-	} else if true in end.epsilon.map(it.is_end) {
-		curr_match.end = i + 1
-	}
-
-	if curr_match.end > curr_match.start && true in end.epsilon.map(it.is_end) {
-		curr_match.end = i + 1
-		//matches << curr_match
-		//curr_match = Group{}
-	}
-}
-
-[direct_array_access; inline]
-fn eval_match2(start &State, end &State, mut curr_match Group, mut matches []Group, i int) {
-	// adding current match
-	if curr_match.start == -1 {
-		log.info("setting match start = $i")
-		curr_match.start = i
-	}
-	if end.is_end {
-		log.info("evaluating match end = $i")
-		curr_match.end = i + 1
-		matches << curr_match
-		curr_match = Group{}
-	} else if true in end.epsilon.map(it.is_end) {
-		log.info("evaluating epsilon $end.epsilon")
-		curr_match.end = i + 1
-		if matches.len == 0 {
-			matches << curr_match
-		} else {
-			matches[matches.len-1].start = curr_match.start
-			matches[matches.len-1].end = curr_match.end
-		}
-	}
+	return last_state, eps > 0
 }
 

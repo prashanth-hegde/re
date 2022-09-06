@@ -69,7 +69,7 @@ find_all_test_suite = [
 	},
 //	Test_find_all{
 //		"abcd 1234 efgh 1234 ghkl1234 ab34546df",
-//		r"\a+",
+//		r"\w+",
 //		[0, 4, 10, 14, 20, 24, 29, 31, 36, 38],
 //		['abcd', 'efgh', 'ghkl', 'ab', 'df']
 //	},
@@ -136,15 +136,15 @@ find_all_test_suite = [
 ]
 )
 
-fn test_find_all() ? {
+fn test_find_all() {
 	for test in find_all_test_suite {
 		expr := compile(test.q) or {
 			eprintln('err: $err')
 			assert false
 			continue
 		}
-		//res := expr.match_all(test.src)
-		//assert true
-		//assert res.matches.len * 2 == test.res.len, '$test.q'
+		res := expr.match_all(test.src)
+		assert res.matches.len * 2 == test.res.len, '$test.q'
 	}
 }
+
