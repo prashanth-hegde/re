@@ -79,12 +79,12 @@ find_all_test_suite = [
 //		[5, 10, 31, 36, 51, 56],
 //		['pippo', 'pluto', 'pippo']
 //	},
-//	Test_find_all{
-//		"oggi pibao è andato a casa di pbababao ed ha trovato pibabababao",
-//		r"(pi?(ba)+o)",
-//		[5, 10, 31, 39, 54, 65],
-//		['pibao', 'pbababao', 'pibabababao']
-//	},
+	Test_find_all{
+		"oggi pibao è andato a casa di pbababao ed ha trovato pibabababao",
+		r"(pi?(ba)+o)",
+		[5, 10, 31, 39, 54, 65],
+		['pibao', 'pbababao', 'pibabababao']
+	},
 //	Test_find_all{
 //		"Today is a good day and tomorrow will be for sure.",
 //		r"[Tt]o\w+",
@@ -97,12 +97,12 @@ find_all_test_suite = [
 //		[5, 44],
 //		['url = https://github.com/dario/pig.html']
 //	},
-//	Test_find_all{
-//		"pera\nurl = https://github.com/dario/pig.html\npippo",
-//		r"url *= *https?://.*"+'\n',
-//		[5, 45],
-//		['url = https://github.com/dario/pig.html\n']
-//	},
+	Test_find_all{
+		"pera\nurl = https://github.com/dario/pig.html\npippo",
+		r"url *= *https?://.*"+'\n',
+		[5, 45],
+		['url = https://github.com/dario/pig.html\n']
+	},
 //	Test_find_all{
 //		"#.#......##.#..#..##........##....###...##...######.......#.....#..#......#...#........###.#..#.",
 //		r"#[.#]{4}##[.#]{4}##[.#]{4}###",
@@ -115,12 +115,14 @@ find_all_test_suite = [
 //		[0, 49],
 //		['#.#......##.#..#..##........##....###...##...####']
 //	},
-//	Test_find_all{
-//		"1234 Aa dddd Aaf 12334 Aa opopo Aaf",
-//		r"Aa.+Aaf",
-//		[5, 16, 23, 35],
-//		['Aa dddd Aaf', 'Aa opopo Aaf']
-//	},
+	// This is a deviation from v's regex to more standardized regex. Check out
+	// regexr.com output for this same pattern
+	Test_find_all{
+		"1234 Aa dddd Aaf 12334 Aa opopo Aaf",
+		r"Aa.+Aaf",
+		[5, 35],
+		['Aa dddd Aaf 12334 Aa opopo Aaf']
+	},
 //	Test_find_all{
 //		"@for something @endfor @for something else @endfor altro testo @for body @endfor uno due @for senza dire più @endfor pippo",
 //		r"@for.+@endfor",

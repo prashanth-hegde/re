@@ -33,6 +33,13 @@ fn (s &State) group_ends() []int {
 	return ends
 }
 
+fn (mut s State) mark_not_end() {
+	s.is_end = false
+	for mut e in s.epsilon {
+		e.is_end = false
+	}
+}
+
 fn (s &State) str() string {
 	e := if s.is_end { ", end" } else { "" }
 	return 's${s.name}[ep=$s.epsilon.len, tr=$s.transitions.len$e]'
@@ -89,6 +96,7 @@ fn (mut n NFA) handle(tok Token) {
 fn (mut n NFA) handle_char(tok Token) {
 	mut s0 := n.create_state()
 	mut s1 := n.create_state()
+	s0.is_end = false
 	transit_state := StateTransition{tok, s1}
 	s0.transitions << transit_state
 	n.add_transition(s0, s1)
@@ -98,10 +106,8 @@ fn (mut n NFA) handle_char(tok Token) {
 fn (mut n NFA) handle_concat(tok Token) {
 	mut n2 := n.nfa_stack.pop()
 	mut n1 := n.nfa_stack.pop()
-	n1.start.is_end = false
-	n1.end.is_end = false
-	n2.start.is_end = false
 	n1.end.epsilon << n2.start
+	n1.end.mark_not_end()
 	n.add_transition(n1.start, n2.end)
 	log.debug('concat handler    -> $tok, start=$n1.start, end=$n2.end')
 }
@@ -127,6 +133,9 @@ fn (mut n NFA) handle_rep(tok Token) {
 	s0.epsilon << n1.start
 	if tok.symbol == .star {
 		s0.epsilon << s1
+	} else {
+		s0.is_end = false
+		n1.start.mark_not_end()
 	}
 	n1.end.epsilon << s1
 	n1.end.epsilon << n1.start

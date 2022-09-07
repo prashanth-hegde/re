@@ -9,10 +9,10 @@ fn main() {
 
 fn happy_path() ? {
 	txt := "abcd 1234 efgh 1234 ghkl1234 ab34546df"
+	println("test string = $txt")
 	//expr := re.compile(r'abcd') ?
 	//word := re.compile(r'ab\w\w') ?
-	digit := re.compile(r'\w+') ?
-	group_alt := re.compile(r'(ab)+d') ?
+	//group_alt := re.compile(r'(ab)+d') ?
 	//unicode_expr :=
 	//ff := expr.find_first("hhhh") or {"not found"}
 	//println('match_all         -> ${expr.match_all("abcd")}')
@@ -23,11 +23,16 @@ fn happy_path() ? {
 	//println('word              -> ${word.match_all("abcd").get_matches()}')
 	//println('word              -> ${word.match_all(txt).get_matches()}')
 	//println('unicode           -> ${expr.match_all(txt).get_matches()}')
-	println('digit             -> ${digit.match_all(txt).get_matches()}')
 	//println('digit             -> ${digit.match_all(txt).get_matches()}')
 	//println('group_alt 					-> ${group_alt.match_all("abbbbd").get_matches()}')
 
 	//println('contains -> ${group_alt.contains_in("abbbbd")}')
+
+	mul_matches := re.compile('Aa.+Aaf') ?
+	println('mult matches      -> ${mul_matches.match_all("1234 Aa dddd Aaf 12334 Aa opopo Aaf").get_matches()}')
+
+	//digit := re.compile(r'\d+') ?
+	//println('digit             -> ${digit.match_all(txt).get_matches()}')
 }
 
 //fn failed_exprs() {

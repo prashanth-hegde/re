@@ -43,14 +43,11 @@ fn is_alnum(ch u8) bool {
 fn can_transition(state &State, ch rune) ?&State {
 	mut res := false
 	for tr in state.transitions {
-		log.trace("evaluating state transition $tr.token against $ch")
+		log.debug("evaluating state transition $tr.token against $ch")
 		res = match tr.token.symbol {
 			.char					 		{ tr.token.ch() == ch }
 			.dot							{ true }
-			.word 						{
-				log.info("word match - $ch - ${is_alnum(ch)}")
-				is_alnum(ch)
-			}
+			.word 						{ is_alnum(ch) }
 			.nonword 					{ !is_alnum(ch) }
 			.digit 						{ is_digit(ch) }
 			.nondigit 				{ !is_digit(ch) }
@@ -77,54 +74,43 @@ fn (re Re) match_internal(text string, first_match bool) Result {
 	add_state(re.transit.start, mut curr_states)
 	for i, ch in text {
 		mut next_states := []State{}
-		//mut match_found := false
 		for state in curr_states {
 			next_state := can_transition(state, ch) or { continue }
 			log.debug("group info for state $next_state.name : start=$next_state.group_start, end=$next_state.group_end")
 			eval_group(state, next_state, mut groups, i)
-			//eval_match3(state, next_state, mut curr_match, mut matches, i)
 
-			// =========== matcher ===============
 			if curr_match.start == -1 {
 				curr_match.start = i
 			}
-			// =========== matcher ===============
-
 
 			add_state(next_state, mut next_states)
 		}
-		prev_last_state, prev_eps := check_end(curr_states)
+		prev_last_state, prev_eps, _ := check_end(curr_states)
 		curr_states = next_states.clone()
+		last_state, eps, terminal := check_end(curr_states)
 		log.info("next_states: $curr_states")
 
 		if prev_last_state && prev_eps && curr_match.start != -1 && curr_states.len == 0 {
 			log.info("previous state was last that got reset, so adding them to match | last_state=$prev_last_state, eps=$prev_eps")
-			curr_match.end = i
-			log.info("setting new match start i=$i, curr_match=$curr_match, matches=$matches.len")
-			matches << curr_match
-			curr_match = Group{}
+			append_match(mut curr_match, mut matches, i)
 			add_state(re.transit.start, mut curr_states)
 		} else if i == text.len - 1 && prev_eps && curr_match.start != -1 {
-			log.info("end of text an match is epsilon, so adding them to match")
-			curr_match.end = i + 1
-			log.info("setting new match start i=$i, curr_match=$curr_match, matches=$matches.len")
-			matches << curr_match
-			curr_match = Group{}
+			log.info("end of text match is epsilon, new start i=$i, curr_match=$curr_match, matches=$matches.len")
+			append_match(mut curr_match, mut matches, i+1)
+			// not resetting state here
 		} else if curr_states.len == 0 {
 			log.info("no more states... resetting state machine")
 			curr_match.start = -1
 			add_state(re.transit.start, mut curr_states)
-		} else {
+		} else if last_state && !eps {
 			log.info("epsilon map = ${curr_states.map(it.name)} ${curr_states.map(it.is_end)}, curr=$curr_match")
-			last_state, eps := check_end(curr_states)
-			if last_state && eps && !prev_last_state && matches.len > 0 {
-				//matches[matches.len - 1].end = i + 1
-			} else if last_state && !eps {
-				curr_match.end = i + 1
-				matches << curr_match
-				curr_match = Group{}
-				add_state(re.transit.start, mut curr_states)
-			}
+			append_match(mut curr_match, mut matches, i + 1)
+			add_state(re.transit.start, mut curr_states)
+		//} else if terminal {
+		//	log.info("terminal state, i=$i, ch=$ch, curr_states=$curr_states")
+		//	append_match(mut curr_match, mut matches, i)
+		//	curr_states.clear()
+		//	add_state(re.transit.start, mut curr_states)
 		}
 
 		if first_match && matches.len > 0 {
@@ -164,12 +150,23 @@ fn eval_group(start &State, end &State, mut groups []Group, position int) {
 	}
 }
 
-fn check_end (states []State) (bool, bool) {
+[inline]
+fn check_end (states []State) (bool, bool, bool) {
 	last_state := true in states.map(it.is_end)
 	mut eps := 0
+	mut terminal := false
 	for s in states {
 		eps += s.epsilon.len
+		if !terminal {
+			terminal = s.is_end && s.epsilon.len == 0 && s.transitions.len == 0
+		}
 	}
-	return last_state, eps > 0
+	return last_state, eps > 0, terminal
 }
 
+[inline]
+fn append_match(mut curr_match Group, mut matches []Group, match_end int) {
+	curr_match.end = match_end
+	matches << curr_match
+	curr_match = Group{}
+}
