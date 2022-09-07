@@ -119,16 +119,16 @@ find_all_test_suite = [
 	// regexr.com output for this same pattern
 	Test_find_all{
 		"1234 Aa dddd Aaf 12334 Aa opopo Aaf",
-		r"Aa.+Aaf",
-		[5, 35],
+		r"Aa.*Aaf",
+		[5, 16, 23, 35],
 		['Aa dddd Aaf 12334 Aa opopo Aaf']
 	},
-//	Test_find_all{
-//		"@for something @endfor @for something else @endfor altro testo @for body @endfor uno due @for senza dire più @endfor pippo",
-//		r"@for.+@endfor",
-//		[0, 22, 23, 50, 63, 80, 89, 117],
-//		['@for something @endfor', '@for something else @endfor', '@for body @endfor', '@for senza dire più @endfor']
-//	},
+	Test_find_all{
+		"@for something @endfor @for something else @endfor altro testo @for body @endfor uno due @for senza dire più @endfor pippo",
+		r"@for.+@endfor",
+		[0, 22, 23, 50, 63, 80, 89, 117],
+		['@for something @endfor', '@for something else @endfor', '@for body @endfor', '@for senza dire più @endfor']
+	},
 //	Test_find_all{
 //		"+++pippo+++\n elvo +++ pippo2 +++ +++ oggi+++",
 //		r"\+{3}.*\+{3}",

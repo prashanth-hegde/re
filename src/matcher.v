@@ -74,6 +74,7 @@ fn (re Re) match_internal(text string, first_match bool) Result {
 	add_state(re.transit.start, mut curr_states)
 	for i, ch in text {
 		mut next_states := []State{}
+		mut terminal := false
 		for state in curr_states {
 			next_state := can_transition(state, ch) or { continue }
 			log.debug("group info for state $next_state.name : start=$next_state.group_start, end=$next_state.group_end")
@@ -82,15 +83,25 @@ fn (re Re) match_internal(text string, first_match bool) Result {
 			if curr_match.start == -1 {
 				curr_match.start = i
 			}
+			if next_state.is_end && next_state.epsilon.len == 0 && next_state.transitions.len == 0 {
+				log.info("terminal match")
+				terminal = true
+				break
+			}
 
 			add_state(next_state, mut next_states)
 		}
-		prev_last_state, prev_eps, _ := check_end(curr_states)
+		prev_last_state, prev_eps := check_end(curr_states)
 		curr_states = next_states.clone()
-		last_state, eps, terminal := check_end(curr_states)
+		last_state, eps := check_end(curr_states)
 		log.info("next_states: $curr_states")
 
-		if prev_last_state && prev_eps && curr_match.start != -1 && curr_states.len == 0 {
+		if terminal {
+			log.info("terminal state")
+			append_match(mut curr_match, mut matches, i + 1)
+			curr_states.clear()
+			add_state(re.transit.start, mut curr_states)
+		} else if prev_last_state && prev_eps && curr_match.start != -1 && curr_states.len == 0 {
 			log.info("previous state was last that got reset, so adding them to match | last_state=$prev_last_state, eps=$prev_eps")
 			append_match(mut curr_match, mut matches, i)
 			add_state(re.transit.start, mut curr_states)
@@ -106,11 +117,13 @@ fn (re Re) match_internal(text string, first_match bool) Result {
 			log.info("epsilon map = ${curr_states.map(it.name)} ${curr_states.map(it.is_end)}, curr=$curr_match")
 			append_match(mut curr_match, mut matches, i + 1)
 			add_state(re.transit.start, mut curr_states)
-		//} else if terminal {
-		//	log.info("terminal state, i=$i, ch=$ch, curr_states=$curr_states")
-		//	append_match(mut curr_match, mut matches, i)
-		//	curr_states.clear()
-		//	add_state(re.transit.start, mut curr_states)
+		//} else if !last_state && eps && curr_match.start != -1 {
+		//	log.info("digit match")
+		//	if matches.len == 0 {
+		//		append_match(mut curr_match, mut matches, i + 1)
+		//	} else {
+		//		matches[matches.len - 1].end = i + 1
+		//	}
 		}
 
 		if first_match && matches.len > 0 {
@@ -151,17 +164,13 @@ fn eval_group(start &State, end &State, mut groups []Group, position int) {
 }
 
 [inline]
-fn check_end (states []State) (bool, bool, bool) {
+fn check_end (states []State) (bool, bool) {
 	last_state := true in states.map(it.is_end)
 	mut eps := 0
-	mut terminal := false
 	for s in states {
 		eps += s.epsilon.len
-		if !terminal {
-			terminal = s.is_end && s.epsilon.len == 0 && s.transitions.len == 0
-		}
 	}
-	return last_state, eps > 0, terminal
+	return last_state, eps > 0
 }
 
 [inline]
@@ -170,3 +179,4 @@ fn append_match(mut curr_match Group, mut matches []Group, match_end int) {
 	matches << curr_match
 	curr_match = Group{}
 }
+

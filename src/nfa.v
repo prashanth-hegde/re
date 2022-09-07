@@ -140,6 +140,8 @@ fn (mut n NFA) handle_rep(tok Token) {
 	n1.end.epsilon << s1
 	n1.end.epsilon << n1.start
 	n1.end.is_end = false
+	n1.start.mark_not_end()
+	s0.mark_not_end()
 	n.add_transition(s0, s1)
 	log.debug('rep handler       -> $tok, start=$s0, end=$s1')
 }
@@ -148,6 +150,7 @@ fn (mut n NFA) handle_qmark(tok Token) {
 	mut n1 := n.nfa_stack.pop()
 	n1.start.epsilon << n1.end
 	n.nfa_stack << n1
+	log.debug('qmark handler     -> $tok, start=$n1.start, end=$n1.end')
 }
 
 fn (mut n NFA) handle_group_start(tok Token) {
