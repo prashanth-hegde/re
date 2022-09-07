@@ -33,6 +33,13 @@ fn (s &State) group_ends() []int {
 	return ends
 }
 
+fn (mut s State) mark_not_end() {
+	s.is_end = false
+	for mut e in s.epsilon {
+		e.is_end = false
+	}
+}
+
 fn (s &State) str() string {
 	e := if s.is_end { ", end" } else { "" }
 	return 's${s.name}[ep=$s.epsilon.len, tr=$s.transitions.len$e]'
@@ -89,6 +96,7 @@ fn (mut n NFA) handle(tok Token) {
 fn (mut n NFA) handle_char(tok Token) {
 	mut s0 := n.create_state()
 	mut s1 := n.create_state()
+	s0.is_end = false
 	transit_state := StateTransition{tok, s1}
 	s0.transitions << transit_state
 	n.add_transition(s0, s1)
@@ -98,8 +106,8 @@ fn (mut n NFA) handle_char(tok Token) {
 fn (mut n NFA) handle_concat(tok Token) {
 	mut n2 := n.nfa_stack.pop()
 	mut n1 := n.nfa_stack.pop()
-	n1.end.is_end = false
 	n1.end.epsilon << n2.start
+	n1.end.mark_not_end()
 	n.add_transition(n1.start, n2.end)
 	log.debug('concat handler    -> $tok, start=$n1.start, end=$n2.end')
 }
@@ -125,10 +133,15 @@ fn (mut n NFA) handle_rep(tok Token) {
 	s0.epsilon << n1.start
 	if tok.symbol == .star {
 		s0.epsilon << s1
+	} else {
+		s0.is_end = false
+		n1.start.mark_not_end()
 	}
 	n1.end.epsilon << s1
 	n1.end.epsilon << n1.start
 	n1.end.is_end = false
+	n1.start.mark_not_end()
+	s0.mark_not_end()
 	n.add_transition(s0, s1)
 	log.debug('rep handler       -> $tok, start=$s0, end=$s1')
 }
@@ -137,6 +150,7 @@ fn (mut n NFA) handle_qmark(tok Token) {
 	mut n1 := n.nfa_stack.pop()
 	n1.start.epsilon << n1.end
 	n.nfa_stack << n1
+	log.debug('qmark handler     -> $tok, start=$n1.start, end=$n1.end')
 }
 
 fn (mut n NFA) handle_group_start(tok Token) {
@@ -159,7 +173,7 @@ fn (mut n NFA) handle_group_end(tok Token) {
 	// if group_start was not encountered as part of n1, then n2 should have the
 	// group start
 	group_num_str := n2.start.transitions.pop()
-	group_num := int(group_num_str.token.ch())
+	group_num := int(group_num_str.token.ch() - `0`)
 	n1.start.group_start << group_num
 	n1.end.group_end << group_num
 	n.nfa_stack << n1
@@ -195,4 +209,3 @@ fn build_nfa(expr string) ?&Transition {
 	tr := nfa.nfa_stack.pop()
 	return tr
 }
-

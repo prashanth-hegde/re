@@ -95,7 +95,7 @@ fn (mut p Parser) opt() {
 }
 
 fn (mut p Parser) concat() {
-	log.trace("evaluating concat")
+	log.trace("evaluating concat: $p.lookahead().char")
 	p.factor()
 	if p.lookahead().symbol !in [.group_end, .opt, .end] {
 		p.concat()
@@ -104,16 +104,16 @@ fn (mut p Parser) concat() {
 }
 
 fn (mut p Parser) factor() {
-	log.trace("evaluating factor")
+	log.trace("evaluating factor: $p.lookahead().symbol")
 	p.primary()
-	if p.lookahead().symbol in [.star, .plus, .qmark] {
+	for p.lookahead().symbol in [.star, .plus, .qmark] {
 		p.tokens << p.lookahead()
 		p.next_token()
 	}
 }
 
 fn (mut p Parser) primary() {
-	log.trace("evaluating primary")
+	log.trace("evaluating primary: $p.lookahead().char")
 	if p.lookahead().symbol == .group_start {
 		p.tokens << Token{'${p.curr_group++}', .group_start}
 		p.next_token()
@@ -133,6 +133,7 @@ fn (mut p Parser) gp_end() {
 
 fn parse(expr string) []Token {
 	mut parser := Parser{pattern:expr, runes:expr.runes()}
+	log.debug("token_runes = $parser.runes")
 	mut tok := parser.get_token(false)
 	for tok.symbol != .end {
 		parser.raw_tokens << tok
