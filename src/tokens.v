@@ -28,24 +28,27 @@ fn (mut parser Parser) get_token(escaped bool) Token {
 	chr := parser.runes[parser.position]
 	return if escaped && chr == `.` {
 		parser.position++
-		Token{'.', .char}
+		Token{'.', .char, []}
 	} else if !escaped && chr == `.` {
 		parser.position++
-		Token{'', .dot}
+		Token{'', .dot, []}
 	} else if escaped	&& chr in switches {
 		parser.position++
 		sw := switches[chr] or { Symbol.char }
-		Token{chr.str(), sw}
+		Token{chr.str(), sw, []}
 	} else if !escaped && chr == `\\` {
 		parser.position++
 		parser.get_token(true)
 	} else if !escaped && chr in symbol_map {
 		parser.position++
 		sym := symbol_map[chr] or { Symbol.char }
-		Token{chr.str(), sym}
+		Token{chr.str(), sym, []}
+	} else if !escaped && chr == `[` {
+		parser.position++
+		parser.parse_char_set()
 	} else {
 		parser.position++
-		Token{chr.str(), .char}
+		Token{chr.str(), .char, []}
 	}
 }
 
@@ -99,7 +102,7 @@ fn (mut p Parser) concat() {
 	p.factor()
 	if p.lookahead().symbol !in [.group_end, .opt, .end] {
 		p.concat()
-		p.tokens << Token{concat.str(), .concat}
+		p.tokens << Token{concat.str(), .concat, []}
 	}
 }
 
@@ -115,19 +118,13 @@ fn (mut p Parser) factor() {
 fn (mut p Parser) primary() {
 	log.trace("evaluating primary: $p.lookahead().char")
 	if p.lookahead().symbol == .group_start {
-		p.tokens << Token{'${p.curr_group++}', .group_start}
+		p.tokens << Token{'${p.curr_group++}', .group_start, []}
 		p.next_token()
 		p.opt()
 		p.next_token()
 	} else {
 		p.tokens << p.lookahead()
 		p.next_token()
-	}
-}
-
-fn (mut p Parser) gp_end() {
-	if p.lookahead().symbol == .group_end {
-		p.tokens << Token{'0', .group_end}
 	}
 }
 
@@ -141,5 +138,65 @@ fn parse(expr string) []Token {
 	}
 	parser.position = 0
 	return parser.parse()
+}
+
+/******************************************************************************
+*
+* Character Set parser
+*
+******************************************************************************/
+fn (mut p Parser) parse_char_set() Token {
+	run := fn [p] () rune {
+	  return p.runes[p.position]
+	}
+
+	char_seq := fn (st rune, en rune) string {
+		mut curr := st + 1
+		mut seq := ''
+		for curr < en {
+			seq += curr.str()
+			curr++
+		}
+		return seq
+	}
+
+
+	sym := if p.runes[p.position] == `^` {
+		p.position++
+		Symbol.non
+	} else {
+		Symbol.any
+	}
+	mut ch := ''
+	mut escaped := false
+	mut types := []Symbol{}
+	for escaped || (!escaped && run() != `]`) {
+		if escaped {
+			escaped = !escaped
+			println("escaped block == $p.position $run()")
+			p.position++
+			if run() in switches {
+				types << switches[run()]
+			}
+			p.position++
+			continue
+		} else if run() == `\\` {
+			escaped = true
+			continue
+		} else if run() == `-` &&
+		  (is_lower(ch[ch.len - 1]) ||
+		   is_upper(ch[ch.len - 1]) ||
+		   is_digit(ch[ch.len - 1])) {
+		  // [A-Za-z] kind of format
+		  p.position++
+			ch += char_seq(ch[ch.len - 1], run())
+		}
+		ch += run().str()
+		p.position++
+	}
+	p.position++ // close out the ]
+
+	println("tok = $ch | $sym | $types")
+	return Token{ch, sym, types}
 }
 

@@ -27,14 +27,17 @@ fn happy_path() ? {
 	//println('contains -> ${group_alt.contains_in("abbbbd")}')
 
 	//mul_matches := re.compile('Aa.+?Aaf') ?
-	mul_matches := re.compile(r'A.+f') ?
-	println('mult matches      -> ${mul_matches.match_all("1234 AaA dddd Aaf 12334 Aa opopo Aaf").get_matches()}')
+	//mul_matches := re.compile(r'A.+f') ?
+	//println('mult matches      -> ${mul_matches.match_all("1234 AaA dddd Aaf 12334 Aa opopo Aaf").get_matches()}')
 
 	//digit := re.compile(r'\d+') ?
 	//println('digit             -> ${digit.match_all(txt).get_matches()}')
 
 	//group_alt := re.compile(r'(ab)+d') ?
 	//println('group_alt 					-> ${group_alt.match_all("abbbbd").get_matches()}')
+
+	char_set_any := re.compile(r'ab[c3-9A-Fa-f]') ?
+	println('char_set_any      -> ${char_set_any.match_all(txt).get_matches()}')
 }
 
 //fn failed_exprs() {

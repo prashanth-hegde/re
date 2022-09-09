@@ -19,7 +19,7 @@ enum LogLevel {
 
 struct Log {
 	mut:
-	level LogLevel = .disabled
+	level LogLevel = .debug
 }
 
 fn (l Log) debug(msg string) {
@@ -86,7 +86,7 @@ enum Symbol {
 	non 								  // [^a-z]
 }
 const concat = `\x08`
-const end_token = Token{concat.str(), .end}
+const end_token = Token{concat.str(), .end, []}
 const symbol_map = {
 	`(`                   : Symbol.group_start
 	`)`                   : .group_end
@@ -114,6 +114,8 @@ const switches = {
 struct Token {
 	char                  string         [required]
 	symbol                Symbol         [required]
+	mut:
+	types 								[]Symbol
 }
 
 fn (t Token) ch() rune {

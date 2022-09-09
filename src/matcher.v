@@ -51,6 +51,7 @@ fn can_transition(state &State, ch rune) ?&State {
 			.nonword 					{ !is_alnum(ch) }
 			.digit 						{ is_digit(ch) }
 			.nondigit 				{ !is_digit(ch) }
+			.any 							{ ch in tr.token.char.runes() }
 			else							{ false }
 		}
 		if res {
