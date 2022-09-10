@@ -40,20 +40,39 @@ fn is_alnum(ch u8) bool {
 }
 
 [inline]
+fn is_any(ch rune, tok Token) bool {
+	if ch in tok.char.runes() {
+		return true
+	}
+	for sym in tok.types {
+		if compare(ch, Token{tok.char, sym, []}) {
+			return true
+		}
+	}
+	return false
+}
+
+[inline]
+fn compare(ch rune, tok Token) bool {
+	return match tok.symbol {
+		.char					 		{ tok.ch() == ch }
+		.dot							{ true }
+		.word 						{ is_alnum(ch) }
+		.nonword 					{ !is_alnum(ch) }
+		.digit 						{ is_digit(ch) }
+		.nondigit 				{ !is_digit(ch) }
+		.any 							{ is_any(ch, tok) }
+		.non 							{ !is_any(ch, tok) }
+		else							{ false }
+	}
+}
+
+[inline]
 fn can_transition(state &State, ch rune) ?&State {
 	mut res := false
 	for tr in state.transitions {
 		log.debug("evaluating state transition $tr.token against $ch")
-		res = match tr.token.symbol {
-			.char					 		{ tr.token.ch() == ch }
-			.dot							{ true }
-			.word 						{ is_alnum(ch) }
-			.nonword 					{ !is_alnum(ch) }
-			.digit 						{ is_digit(ch) }
-			.nondigit 				{ !is_digit(ch) }
-			.any 							{ ch in tr.token.char.runes() }
-			else							{ false }
-		}
+		res = compare(ch, tr.token)
 		if res {
 			return tr.state
 		}

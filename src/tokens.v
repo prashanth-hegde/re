@@ -173,7 +173,6 @@ fn (mut p Parser) parse_char_set() Token {
 	for escaped || (!escaped && run() != `]`) {
 		if escaped {
 			escaped = !escaped
-			println("escaped block == $p.position $run()")
 			p.position++
 			if run() in switches {
 				types << switches[run()]
@@ -196,7 +195,6 @@ fn (mut p Parser) parse_char_set() Token {
 	}
 	p.position++ // close out the ]
 
-	println("tok = $ch | $sym | $types")
 	return Token{ch, sym, types}
 }
 

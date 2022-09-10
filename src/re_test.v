@@ -67,36 +67,36 @@ find_all_test_suite = [
 		[5, 9, 15, 19, 24, 28, 31, 36],
 		['1234', '1234', '1234', '34546']
 	},
-//	Test_find_all{
-//		"abcd 1234 efgh 1234 ghkl1234 ab34546df",
-//		r"\w+",
-//		[0, 4, 10, 14, 20, 24, 29, 31, 36, 38],
-//		['abcd', 'efgh', 'ghkl', 'ab', 'df']
-//	},
-//	Test_find_all{
-//		"oggi pippo è andato a casa di pluto ed ha trovato pippo",
-//		r"p[iplut]+o",
-//		[5, 10, 31, 36, 51, 56],
-//		['pippo', 'pluto', 'pippo']
-//	},
+	//Test_find_all{
+	//	"abcd 1234 efgh 1234 ghkl1234 ab34546df",
+	//	r"\a+",
+	//	[0, 4, 10, 14, 20, 24, 29, 31, 36, 38],
+	//	['abcd', 'efgh', 'ghkl', 'ab', 'df']
+	//},
+	Test_find_all{
+		"oggi pippo è andato a casa di pluto ed ha trovato pippo",
+		r"p[iplut]+o",
+		[5, 10, 31, 36, 51, 56],
+		['pippo', 'pluto', 'pippo']
+	},
 	Test_find_all{
 		"oggi pibao è andato a casa di pbababao ed ha trovato pibabababao",
 		r"(pi?(ba)+o)",
 		[5, 10, 31, 39, 54, 65],
 		['pibao', 'pbababao', 'pibabababao']
 	},
-//	Test_find_all{
-//		"Today is a good day and tomorrow will be for sure.",
-//		r"[Tt]o\w+",
-//		[0, 5, 24, 32],
-//		['Today', 'tomorrow']
-//	},
-//	Test_find_all{
-//		"pera\nurl = https://github.com/dario/pig.html\npippo",
-//		r"url *= *https?://[\w./]+",
-//		[5, 44],
-//		['url = https://github.com/dario/pig.html']
-//	},
+	Test_find_all{
+		"Today is a good day and tomorrow will be for sure.",
+		r"[Tt]o\w+",
+		[0, 5, 24, 32],
+		['Today', 'tomorrow']
+	},
+	Test_find_all{
+		"pera\nurl = https://github.com/dario/pig.html\npippo",
+		r"url *= *https?://[\w./]+",
+		[5, 44],
+		['url = https://github.com/dario/pig.html']
+	},
 	Test_find_all{
 		"pera\nurl = https://github.com/dario/pig.html\npippo",
 		r"url *= *https?://.*"+'\n',
