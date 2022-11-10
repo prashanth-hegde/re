@@ -4,7 +4,8 @@ import re
 
 fn main() {
 	//failed_exprs()
-	happy_path() or { return }
+	//happy_path() or { return }
+	doc_examples() or { return }
 }
 
 fn happy_path() ? {
@@ -43,3 +44,10 @@ fn happy_path() ? {
 //		return
 //	}
 //}
+
+fn doc_examples() ? {
+	text := r'cpaz cpapaz cpapapaz'
+  query := r'(c(pa)+z ?)+'
+	r := re.compile(query) ? //notice no mut variable
+	println(r.find_all(text))
+}
