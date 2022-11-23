@@ -1,5 +1,18 @@
 ## re - the regex library for v
 
+---
+**NOTE**
+
+This regex library has been deprecated in favor of v's built-in regex parser.
+v's built-in regex offers excellent performance compared to this library. Although in theory, the NFA method
+is supposed to be linear time-efficient (and it is), the v's standard regex comes with a lot more optimizations
+built-in which reduces array copies etc that make it a lot more efficient.
+
+Having said that, I still wish the ease-of-use would be addressed in V, for which, I am planning to write a wrapper
+on top of existing v's regex parser
+
+---
+
 ### Description
 `re` is an intuitive, easy-to-use, light and fast regex library in and for v
 
